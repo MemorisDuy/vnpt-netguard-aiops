@@ -1,0 +1,40 @@
+# ============================================================
+# FILE docker-compose.yml
+# Dùng để định nghĩa và chạy nhiều container Docker bằng một lệnh duy nhất:
+#   docker compose up -d
+# ============================================================
+
+# Phiên bản cú pháp của Docker Compose file.
+# Lưu ý: từ Docker Compose v2 trở đi, dòng `version` đã bị coi là lỗi thời (obsolete),
+# nên bạn có thể xóa đi, Docker vẫn chạy bình thường (chỉ cảnh báo nếu để lại).
+version: '3.8'
+
+# Khai báo danh sách các dịch vụ (mỗi service = một container).
+services:
+
+  # Tên dịch vụ do bạn tự đặt, ở đây là "db" (cơ sở dữ liệu).
+  # Các container khác trong cùng compose có thể gọi tới DB bằng hostname "db".
+  db:
+    # Image dùng để tạo container: PostgreSQL 15 đã cài sẵn extension PostGIS 3.3.
+    # PostGIS thêm khả năng xử lý dữ liệu không gian địa lý (tọa độ, vùng, khoảng cách...),
+    # rất phù hợp cho đề tài WebGIS dự báo chất lượng mạng.
+    # Cú pháp tag: <phiên bản postgres>-<phiên bản postgis>
+    image: postgis/postgis:15-3.3
+
+    # Biến môi trường truyền vào container khi khởi tạo lần đầu.
+    environment:
+      # Tên user quản trị (superuser) của PostgreSQL.
+      POSTGRES_USER: postgres
+
+      # Mật khẩu của user trên.
+      #  "password" chỉ nên dùng khi phát triển ở máy cá nhân.
+      # Khi triển khai thật phải đổi sang mật khẩu mạnh.
+      POSTGRES_PASSWORD: password
+
+      # Tên database được tự động tạo ra khi container chạy lần đầu.
+      POSTGRES_DB: vnpt_netguard
+
+    # Ánh xạ cổng (port mapping) theo dạng "CỔNG_MÁY_THẬT:CỔNG_TRONG_CONTAINER".
+    # PostgreSQL mặc định chạy ở cổng 5432, nên bạn kết nối từ máy mình qua localhost:5432.
+    ports:
+      - "5432:5432"
