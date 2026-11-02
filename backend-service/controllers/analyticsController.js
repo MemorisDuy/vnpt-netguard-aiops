@@ -53,8 +53,8 @@ const getNetworkHealth = async (req, res) => {
         });
 
     } catch (error) {
-        // Bắt lỗi kết nối database hoặc lỗi truy vấn SQL
-        console.error('❌ [Lỗi getNetworkHealth]:', error.message);
+        // Bat loi ket noi database hoac loi truy van SQL
+        console.error('[ANALYTICS ERROR getNetworkHealth]:', error.message);
         return res.status(500).json({
             status: 'error',
             message: 'Lỗi truy vấn cơ sở dữ liệu khi phân tích sức khỏe mạng',
@@ -141,7 +141,7 @@ const getStationsNearby = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ [Lỗi getStationsNearby]:', error.message);
+        console.error('[ANALYTICS ERROR getStationsNearby]:', error.message);
         return res.status(500).json({
             status: 'error',
             message: 'Lỗi truy vấn không gian PostGIS khi tìm kiếm trạm lân cận',

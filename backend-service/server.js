@@ -72,9 +72,9 @@ app.use((req, res, next) => {
     });
 });
 
-// Middleware xử lý lỗi nội bộ máy chủ (Lỗi 500 Internal Server Error)
+// Middleware xu ly loi noi bo may chu (Loi 500 Internal Server Error)
 app.use((err, req, res, next) => {
-    console.error('❌ Lỗi hệ thống:', err.stack);
+    console.error('[SERVER ERROR]:', err.stack);
     res.status(500).json({
         status: 'error',
         message: 'Đã xảy ra lỗi bên trong máy chủ backend!',
