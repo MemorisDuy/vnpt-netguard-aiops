@@ -89,9 +89,9 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
     console.log('====================================================');
-    console.log(`🚀 VNPT NetGuard Backend Server đang chạy tại port ${PORT}`);
-    console.log(`📡 Health Check API: http://localhost:${PORT}/api/health`);
-    console.log(`📊 Analytics API:    http://localhost:${PORT}/api/analytics/network-health`);
-    console.log(`📍 Spatial Nearby:   http://localhost:${PORT}/api/analytics/nearby?lat=10.8018&lng=106.7114&radius=3000`);
+    console.log(`[INFO] VNPT NetGuard Backend Server dang chay tai port ${PORT}`);
+    console.log(`[ROUTE] Health Check API: http://localhost:${PORT}/api/health`);
+    console.log(`[ROUTE] Analytics API:    http://localhost:${PORT}/api/analytics/network-health`);
+    console.log(`[ROUTE] Spatial Nearby:   http://localhost:${PORT}/api/analytics/nearby?lat=10.8018&lng=106.7114&radius=3000`);
     console.log('====================================================');
 });
