@@ -1,75 +1,97 @@
 // ============================================================
-// 1. IMPORT CÁC THƯ VIỆN
+// 1. IMPORT CÁC THƯ VIỆN CẦN THIẾT
 // ============================================================
 
-// Express: framework web phổ biến nhất của Node.js,
-// dùng để tạo server, định nghĩa các route (đường dẫn API) và middleware.
+// Express: framework web mạnh mẽ và phổ biến nhất của hệ sinh thái Node.js.
+// Dùng để tạo máy chủ HTTP, quản lý định tuyến (routing) và middleware.
 const express = require('express');
 
-// CORS (Cross-Origin Resource Sharing): cho phép frontend chạy ở
-// domain/port khác (ví dụ React ở localhost:3000) gọi được API của backend
-// (localhost:5000). Nếu không bật, trình duyệt sẽ chặn request.
+// CORS (Cross-Origin Resource Sharing): cơ chế an toàn cho phép tài nguyên từ
+// domain/port này được truy cập bởi domain/port khác (Ví dụ: Frontend React chạy
+// tại http://localhost:5173 gọi API của Backend tại http://localhost:5000).
 const cors = require('cors');
 
-// dotenv: đọc file `.env` ở thư mục gốc và nạp các biến trong đó
-// vào `process.env`. Dùng để lưu cấu hình nhạy cảm (mật khẩu DB, API key, PORT...)
-// mà không cần ghi cứng vào code.
-// Lưu ý: phải gọi config() trước khi dùng bất kỳ process.env nào.
+// dotenv: đọc file cấu hình môi trường `.env` và nạp vào đối tượng `process.env`.
+// Giúp bảo mật thông tin nhạy cảm (cổng kết nối, tài khoản database, mật khẩu).
 require('dotenv').config();
-
 
 // ============================================================
 // 2. KHỞI TẠO ỨNG DỤNG EXPRESS
 // ============================================================
-
-// Tạo một instance của Express, `app` chính là server của chúng ta.
 const app = express();
 
-
 // ============================================================
-// 3. MIDDLEWARE
-// Middleware là các hàm chạy "ở giữa" request và route handler.
-// Mọi request đều đi qua chúng theo đúng thứ tự khai báo.
+// 3. CẤU HÌNH MIDDLEWARE
+// Middleware là các hàm trung gian xử lý request trước khi đến route handler.
 // ============================================================
 
-// Bật CORS cho toàn bộ route, cho phép mọi origin truy cập.
-// (Khi triển khai thật nên giới hạn: cors({ origin: 'https://ten-mien-cua-ban.com' }))
+// Cho phép chia sẻ tài nguyên chéo cổng (CORS) cho toàn bộ API
 app.use(cors());
 
-// Tự động parse body dạng JSON của request thành object JavaScript,
-// gán vào `req.body`. Cần thiết cho các API POST/PUT gửi dữ liệu JSON.
+// Tự động phân tích (parse) nội dung request body có định dạng JSON thành Object JS
 app.use(express.json());
 
+// Phân tích dữ liệu dạng urlencoded (hữu ích khi nhận form data từ client)
+app.use(express.urlencoded({ extended: true }));
 
 // ============================================================
-// 4. ĐỊNH NGHĨA ROUTE
+// 4. ĐỊNH NGHĨA CÁC ĐƯỜNG DẪN API (ROUTES)
 // ============================================================
 
-// API kiểm tra "sức khỏe" (health check): GET /api/health
-// Dùng để xác nhận server đang chạy; thường được các công cụ giám sát
-// hoặc hệ thống deploy (Docker, AWS, Render...) gọi định kỳ.
-//   - req (request): chứa thông tin client gửi lên (params, query, body, headers...)
-//   - res (response): dùng để gửi dữ liệu phản hồi về client
+/**
+ * [Route 1] - Health Check: Kiểm tra trạng thái máy chủ
+ * Phương thức: GET /api/health
+ * Mục đích: Cho phép hệ thống giám sát hoặc phía Frontend kiểm tra server có đang sống không.
+ */
 app.get('/api/health', (req, res) => {
-    // status(200): mã HTTP 200 = OK, yêu cầu thành công.
-    // json({...}): trả về dữ liệu dạng JSON và tự đặt header Content-Type phù hợp.
     res.status(200).json({
         status: 'success',
-        message: 'VNPT NetGuard API is running'
+        message: 'VNPT NetGuard AIOps Backend API đang hoạt động ổn định',
+        timestamp: new Date().toISOString()
     });
 });
 
+/**
+ * [Route 2] - Module Phân tích Sức khỏe Mạng & Không gian PostGIS (Core Tech Lead)
+ * Phụ trách: Nguyễn Ngọc Duy (Tech Lead & Core Developer)
+ * - GET /api/analytics/network-health: Thống kê chỉ số AIOps toàn mạng viễn thông.
+ * - GET /api/analytics/nearby: Truy vấn bán kính trạm viễn thông theo hàm ST_DWithin của PostGIS.
+ */
+const analyticsRoutes = require('./routes/analyticsRoutes');
+app.use('/api/analytics', analyticsRoutes);
 
 // ============================================================
-// 5. KHỞI ĐỘNG SERVER
+// 5. XỬ LÝ LỖI TOÀN CỤC (GLOBAL ERROR HANDLING)
 // ============================================================
 
-// Lấy cổng từ biến môi trường PORT (trong file .env hoặc do nền tảng hosting cấp).
-// Nếu không có thì dùng giá trị mặc định là 5000.
+// Middleware bắt các route không tồn tại (Lỗi 404 Not Found)
+app.use((req, res, next) => {
+    res.status(404).json({
+        status: 'error',
+        message: `Đường dẫn ${req.originalUrl} không tồn tại trên hệ thống API!`
+    });
+});
+
+// Middleware xử lý lỗi nội bộ máy chủ (Lỗi 500 Internal Server Error)
+app.use((err, req, res, next) => {
+    console.error('❌ Lỗi hệ thống:', err.stack);
+    res.status(500).json({
+        status: 'error',
+        message: 'Đã xảy ra lỗi bên trong máy chủ backend!',
+        error: process.env.NODE_ENV === 'development' ? err.message : {}
+    });
+});
+
+// ============================================================
+// 6. KHỞI ĐỘNG MÁY CHỦ HTTP
+// ============================================================
 const PORT = process.env.PORT || 5000;
 
-// Bắt đầu lắng nghe request tại cổng PORT.
-// Callback chạy một lần khi server đã khởi động thành công.
 app.listen(PORT, () => {
-    console.log(`Backend Server đang chạy tại port ${PORT}`);
+    console.log('====================================================');
+    console.log(`🚀 VNPT NetGuard Backend Server đang chạy tại port ${PORT}`);
+    console.log(`📡 Health Check API: http://localhost:${PORT}/api/health`);
+    console.log(`📊 Analytics API:    http://localhost:${PORT}/api/analytics/network-health`);
+    console.log(`📍 Spatial Nearby:   http://localhost:${PORT}/api/analytics/nearby?lat=10.8018&lng=106.7114&radius=3000`);
+    console.log('====================================================');
 });
