@@ -1,33 +1,60 @@
 
 .app {
   min-height: 100vh;
+  background: #0f172a;
+}
+
+/* Bố cục đồng bộ 2 cột: Sidebar bên trái + Nội dung Bản đồ bên phải */
+.app-layout {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
   background: #f1f5f9;
 }
 
 .app-header {
   background: #0755a3;
   color: white;
-  padding: 20px 32px;
+  padding: 16px 28px;
+  border-bottom: 1px solid #064482;
 }
 
 .app-header h1 {
-  margin: 0 0 8px;
-  font-size: 26px;
+  margin: 0 0 6px;
+  font-size: 24px;
 }
 
 .app-header p {
   margin: 0;
+  font-size: 14px;
+  opacity: 0.92;
 }
 
 .app-main {
-  padding: 24px 32px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 28px;
+  overflow: hidden;
 }
 
 .app-main h2 {
   color: #1e293b;
-  margin: 0 0 16px;
+  margin: 0 0 14px;
+  font-size: 18px;
 }
 
 .app-main .map-wrapper {
-  height: 65vh;
+  flex: 1;
+  height: 100%;
+  min-height: 0;
 }
