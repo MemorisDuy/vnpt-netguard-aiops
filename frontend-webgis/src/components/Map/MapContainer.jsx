@@ -1,15 +1,15 @@
 // ==============================================================================
-// COMPONENT: MAP CONTAINER (BAN DO DIEU HANH WEB GIS)
-// De tai N3.2: He thong du bao khu vuc co nguy co suy giam chat luong mang
-// Phu trach: Vo Ngoc Quy (Web GIS Engineer)
+// COMPONENT: MAP CONTAINER (BẢN ĐỒ ĐIỀU HÀNH WEB GIS)
+// Đề tài N3.2: Hệ thống dự báo khu vực có nguy cơ suy giảm chất lượng mạng
+// Phụ trách phát triển: Võ Ngọc Quý (Web GIS Engineer)
 // ==============================================================================
 
-// Import cac thanh phan can thiet tu thu vien react-leaflet:
-// - MapContainer (doi ten thanh LeafletMap): Khung chua ban do goc cua Leaflet.
-// - TileLayer: Lop ban do nen dia ly (dung ban do ma nguon mo OpenStreetMap).
-// - Marker: Diem ghim toa do cu the tren ban do.
-// - Popup: Hop thoai thong tin hien ra khi nguoi dung nhap chuot vao diem ghim.
-// - ZoomControl: Nut bam phong to / thu nho ban do (+ / -).
+// Import các thành phần giao diện từ thư viện react-leaflet:
+// - MapContainer (đổi tên thành LeafletMap): Khung chứa bản đồ gốc của thư viện Leaflet.
+// - TileLayer: Lớp bản đồ nền địa lý (sử dụng nguồn bản đồ mở OpenStreetMap).
+// - Marker: Điểm ghim định vị tọa độ trạm cụ thể trên bản đồ.
+// - Popup: Hộp thoại thông tin chi tiết hiện ra khi người dùng nhấp chuột vào điểm ghim.
+// - ZoomControl: Nút bấm điều khiển phóng to / thu nhỏ bản đồ (+ / -).
 import {
   MapContainer as LeafletMap,
   TileLayer,
@@ -18,28 +18,28 @@ import {
   ZoomControl
 } from "react-leaflet";
 
-// Import file dinh dang CSS mac dinh cua Leaflet (bat buoc de ban do khong bi vo giao dien)
+// Import tệp định dạng CSS chuẩn của Leaflet (bắt buộc để các mảnh bản đồ không bị vỡ bố cục)
 import "leaflet/dist/leaflet.css";
 
-// Import file tuy bien giao dien rieng cho khung ban do (chieu rong, chieu cao)
+// Import tệp CSS tùy biến riêng cho khung bản đồ (đặt chiều cao tối thiểu và bo góc)
 import "./MapContainer.css";
 
-// Import lop hien thi vung nhiet canh bao nguy co suy giam mang
+// Import lớp bản đồ nhiệt hiển thị trực quan các vùng cảnh báo nguy cơ suy giảm mạng
 import HeatmapLayer from "./HeatmapLayer";
 
 function MapContainer() {
-  // Toa do dia ly trung tam mac dinh: TP. Ho Chi Minh [Vi do (Lat), Kinh do (Lng)]
+  // Tọa độ địa lý trung tâm mặc định: TP. Hồ Chí Minh [Vĩ độ (Lat), Kinh độ (Lng)]
   const hcmPosition = [10.8231, 106.6297];
 
   return (
     <div className="map-wrapper">
       {/* 
-        Khoi tao khung LeafletMap:
-        - center: Dat goc nhin trung tam vao toa do TP.HCM.
-        - zoom: Muc do phong to mac dinh (cap 12 giup quan sat ro khu vuc do thi).
-        - zoomControl={false}: Tat nut zoom mac dinh o goc tren trai de tuy chinh vi tri khac.
-        - scrollWheelZoom={true}: Cho phep dung cuon chuot de phong to / thu nho.
-        - className: Gan class network-map de dinh nghia chieu cao toi thieu 500px.
+        Khởi tạo khung bản đồ LeafletMap:
+        - center: Đặt góc nhìn trung tâm tại tọa độ TP. Hồ Chí Minh.
+        - zoom: Mức độ phóng to mặc định (cấp 12 phù hợp bao quát mạng lưới đô thị).
+        - zoomControl={false}: Tắt nút zoom mặc định ở góc trên bên trái để tùy chỉnh vị trí.
+        - scrollWheelZoom={true}: Cho phép người vận hành lăn chuột để phóng to / thu nhỏ linh hoạt.
+        - className: Gán class CSS network-map đảm bảo chiều cao tối thiểu 500px.
       */}
       <LeafletMap
         center={hcmPosition}
@@ -49,25 +49,25 @@ function MapContainer() {
         className="network-map"
       >
         {/* 
-          Lop ban do nen dia ly (Base Map Tile):
-          Su dung nguon anh ban do mien phi tu OpenStreetMap contributors.
+          Lớp bản đồ nền địa lý (Base Map Tile):
+          Tải các mảnh bản đồ số (map tiles) trực tiếp từ máy chủ OpenStreetMap.
         */}
         <TileLayer
           attribution="&copy; OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* Dat nut phong to / thu nho o goc duoi ben phai man hinh */}
+        {/* Bố trí nút điều khiển zoom ở góc dưới bên phải màn hình để không che khuất góc nhìn */}
         <ZoomControl position="bottomright" />
 
-        {/* Nhap lop ban do nhiet hien thi cac vung canh bao nguy co suy giam mang */}
+        {/* Kết xuất lớp bản đồ nhiệt trực quan hóa các vùng cảnh báo rủi ro */}
         <HeatmapLayer />
 
-        {/* Diem ghim vi tri trung tam TP.HCM kem hop thoai thong tin (Popup) */}
+        {/* Điểm ghim tọa độ trung tâm TP.HCM kèm popup thông tin thử nghiệm */}
         <Marker position={hcmPosition}>
           <Popup>
-            <strong>TP. Ho Chi Minh</strong>
-            <p>VNPT NetGuard AIOps - Ban do giam sat thu nghiem</p>
+            <strong>TP. Hồ Chí Minh</strong>
+            <p>VNPT NetGuard AIOps - Bản đồ giám sát thử nghiệm</p>
           </Popup>
         </Marker>
       </LeafletMap>
@@ -75,4 +75,5 @@ function MapContainer() {
   );
 }
 
+// Xuất component để App.jsx import vào giao diện chính
 export default MapContainer;
