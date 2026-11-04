@@ -1,0 +1,22 @@
+/* ==============================================================================
+   ĐỊNH DẠNG CSS: BỐ CỤC KHUNG BẢN ĐỒ (MAP CONTAINER)
+   Phụ trách: Võ Ngọc Quý (Web GIS Engineer)
+   ============================================================================== */
+
+/* Khung bao bọc ngoài cùng của bản đồ: bo tròn góc 12px và thiết lập chiều cao tối thiểu */
+.map-wrapper {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Thẻ bản đồ Leaflet: chiếm 100% không gian khung và thiết lập z-index để không đè header */
+.network-map {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  z-index: 1;
+}
