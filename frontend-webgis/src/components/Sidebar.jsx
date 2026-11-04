@@ -10,7 +10,7 @@
 // - [x] Bước 4: Thiết kế giao diện thẻ trạm (Station Card) kèm Badge màu rủi ro
 // ==============================================================================
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './Sidebar.css';
 
 /**
