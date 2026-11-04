@@ -1,0 +1,33 @@
+
+.app {
+  min-height: 100vh;
+  background: #f1f5f9;
+}
+
+.app-header {
+  background: #0755a3;
+  color: white;
+  padding: 20px 32px;
+}
+
+.app-header h1 {
+  margin: 0 0 8px;
+  font-size: 26px;
+}
+
+.app-header p {
+  margin: 0;
+}
+
+.app-main {
+  padding: 24px 32px;
+}
+
+.app-main h2 {
+  color: #1e293b;
+  margin: 0 0 16px;
+}
+
+.app-main .map-wrapper {
+  height: 65vh;
+}
