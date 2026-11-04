@@ -4,6 +4,11 @@
 // Phụ trách: Võ Ngọc Quý (Web GIS Engineer)
 // ==============================================================================
 
+import { useState } from "react";
+
+// Import component thanh điều khiển bên trái hiển thị danh sách trạm và bộ lọc rủi ro
+import Sidebar from "./components/Sidebar";
+
 // Import component bản đồ số chứa lớp nhiệt cảnh báo rủi ro
 import MapContainer from "./components/Map/MapContainer";
 
@@ -11,21 +16,30 @@ import MapContainer from "./components/Map/MapContainer";
 import "./App.css";
 
 function App() {
-  return (
-    <div className="app">
-      {/* Thanh tiêu đề Header trên cùng hiển thị nhận diện đề tài VNPT */}
-      <header className="app-header">
-        <h1>VNPT NetGuard AIOps</h1>
-        <p>
-          Hệ thống dự báo nguy cơ suy giảm chất lượng mạng viễn thông
-        </p>
-      </header>
+  // Lưu trạng thái trạm phát sóng đang được người vận hành chọn từ Sidebar
+  const [selectedStation, setSelectedStation] = useState(null);
 
-      {/* Khu vực nội dung chính chứa khung bản đồ số Web GIS */}
-      <main className="app-main">
-        <h2>Bản đồ giám sát mạng thời gian thực</h2>
-        <MapContainer />
-      </main>
+  return (
+    <div className="app app-layout">
+      {/* Thanh điều khiển Sidebar bên trái (Minh Trường) */}
+      <Sidebar onSelectStation={(station) => setSelectedStation(station)} />
+
+      {/* Khu vực khung nội dung bên phải: Header + Bản đồ số Web GIS (Võ Ngọc Quý) */}
+      <div className="app-content">
+        {/* Thanh tiêu đề Header trên cùng hiển thị nhận diện đề tài VNPT */}
+        <header className="app-header">
+          <h1>VNPT NetGuard AIOps</h1>
+          <p>
+            Hệ thống dự báo nguy cơ suy giảm chất lượng mạng viễn thông
+          </p>
+        </header>
+
+        {/* Khu vực nội dung chính chứa khung bản đồ số Web GIS */}
+        <main className="app-main">
+          <h2>Bản đồ giám sát mạng thời gian thực</h2>
+          <MapContainer selectedStation={selectedStation} />
+        </main>
+      </div>
     </div>
   );
 }

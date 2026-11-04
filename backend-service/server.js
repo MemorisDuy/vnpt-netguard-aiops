@@ -62,6 +62,10 @@ app.use('/api/analytics', analyticsRoutes);
 // Đăng ký route thống kê trạm rủi ro cao 
 const statsRoutes = require('./routes/statsRoutes');
 app.use('/api/stats', statsRoutes);
+
+// Đăng ký route lấy toàn bộ danh sách trạm phát sóng (Phụ trách: Minh Trường)
+const stationRoutes = require('./routes/stationRoutes');
+app.use('/api/stations', stationRoutes);
 // ============================================================
 // 5. XỬ LÝ LỖI TOÀN CỤC (GLOBAL ERROR HANDLING)
 // ============================================================
@@ -96,5 +100,6 @@ app.listen(PORT, () => {
     console.log(`[ROUTE] Analytics API:    http://localhost:${PORT}/api/analytics/network-health`);
     console.log(`[ROUTE] Spatial Nearby:   http://localhost:${PORT}/api/analytics/nearby?lat=10.8018&lng=106.7114&radius=3000`);
     console.log(`[ROUTE] High Risk Stats:  http://localhost:${PORT}/api/stats/high-risk`);
+    console.log(`[ROUTE] All Stations API: http://localhost:${PORT}/api/stations`);
     console.log('====================================================');
 });
