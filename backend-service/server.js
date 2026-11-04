@@ -60,6 +60,14 @@ app.get('/api/health', (req, res) => {
 const analyticsRoutes = require('./routes/analyticsRoutes');
 app.use('/api/analytics', analyticsRoutes);
 
+/**
+ * [Route 3] - Module Dữ liệu Không gian Địa lý GeoJSON (PostGIS)
+ * Phụ trách: Ngọc Lân (Full-stack API Không gian - PostGIS)
+ * - GET /api/spatial/stations-geojson: Chuyển đổi tọa độ trạm phát sóng sang định dạng chuẩn GeoJSON.
+ */
+const spatialRoutes = require('./routes/spatialRoutes');
+app.use('/api/spatial', spatialRoutes);
+
 // ============================================================
 // 5. XỬ LÝ LỖI TOÀN CỤC (GLOBAL ERROR HANDLING)
 // ============================================================
@@ -93,5 +101,6 @@ app.listen(PORT, () => {
     console.log(`[ROUTE] Health Check API: http://localhost:${PORT}/api/health`);
     console.log(`[ROUTE] Analytics API:    http://localhost:${PORT}/api/analytics/network-health`);
     console.log(`[ROUTE] Spatial Nearby:   http://localhost:${PORT}/api/analytics/nearby?lat=10.8018&lng=106.7114&radius=3000`);
+    console.log(`[ROUTE] Spatial GeoJSON:  http://localhost:${PORT}/api/spatial/stations-geojson`);
     console.log('====================================================');
 });
