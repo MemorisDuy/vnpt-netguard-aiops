@@ -59,7 +59,9 @@ app.get('/api/health', (req, res) => {
  */
 const analyticsRoutes = require('./routes/analyticsRoutes');
 app.use('/api/analytics', analyticsRoutes);
-
+// Đăng ký route thống kê trạm rủi ro cao 
+const statsRoutes = require('./routes/statsRoutes');
+app.use('/api/stats', statsRoutes);
 // ============================================================
 // 5. XỬ LÝ LỖI TOÀN CỤC (GLOBAL ERROR HANDLING)
 // ============================================================
@@ -93,5 +95,6 @@ app.listen(PORT, () => {
     console.log(`[ROUTE] Health Check API: http://localhost:${PORT}/api/health`);
     console.log(`[ROUTE] Analytics API:    http://localhost:${PORT}/api/analytics/network-health`);
     console.log(`[ROUTE] Spatial Nearby:   http://localhost:${PORT}/api/analytics/nearby?lat=10.8018&lng=106.7114&radius=3000`);
+    console.log(`[ROUTE] High Risk Stats:  http://localhost:${PORT}/api/stats/high-risk`);
     console.log('====================================================');
 });
