@@ -1,29 +1,25 @@
-// ============================================================
-// 1. IMPORT THƯ VIỆN & CONTROLLER
-// ============================================================
+// ==============================================================================
+// ROUTES: ĐỊNH TUYẾN MODULE THỐNG KÊ TRẠM RỦI RO CAO NỘI BỘ
+// Đề tài N3.2: Hệ thống dự báo khu vực có nguy cơ suy giảm chất lượng mạng
+// Phụ trách phát triển: Võ Anh Thao (MSSV: 054205001770) - Backend Developer
+// ==============================================================================
 
-// Express: dùng để khởi tạo bộ định tuyến (Router) quản lý các đường dẫn API.
+// Import framework Express để khởi tạo đối tượng định tuyến Router
 const express = require('express');
 const router = express.Router();
 
-// Import hàm xử lý nghiệp vụ `getHighRiskAreas` từ `controllers/statsController.js`.
+// Import hàm xử lý nghiệp vụ getHighRiskAreas từ controller tương ứng
 const { getHighRiskAreas } = require('../controllers/statsController');
 
-
-// ============================================================
-// 2. ĐỊNH NGHĨA ROUTE (ĐƯỜNG DẪN API)
-// ============================================================
-
-// API thống kê trạm rủi ro cao: GET /api/stats/high-risk
-// Lưu ý: tiền tố `/api/stats` đã được khai báo tại `server.js` thông qua:
-//   app.use('/api/stats', require('./routes/statsRoutes'));
-// Do đó tại đây chỉ cần khai báo đường dẫn con là `/high-risk`.
+/**
+ * ------------------------------------------------------------------------------
+ * ĐỊNH NGHĨA ROUTE: THỐNG KÊ DANH SÁCH TRẠM NGUY CƠ CAO (HIGH RISK)
+ * ------------------------------------------------------------------------------
+ * Endpoint hoàn chỉnh: GET /api/stats/high-risk
+ * Tiền tố `/api/stats` đã được khai báo tập trung tại file `server.js`.
+ * Tại đây chỉ cần định nghĩa tuyến đường con `/high-risk`.
+ */
 router.get('/high-risk', getHighRiskAreas);
 
-
-// ============================================================
-// 3. EXPORT ROUTER
-// ============================================================
-
-// Xuất đối tượng router để kết nối vào ứng dụng chính tại `server.js`.
+// Xuất đối tượng router để đăng ký vào ứng dụng Express tại server.js
 module.exports = router;
