@@ -59,13 +59,23 @@ app.get('/api/health', (req, res) => {
  */
 const analyticsRoutes = require('./routes/analyticsRoutes');
 app.use('/api/analytics', analyticsRoutes);
-// Đăng ký route thống kê trạm rủi ro cao 
+
+// Đăng ký route thống kê trạm rủi ro cao (Phụ trách: Võ Anh Thao)
 const statsRoutes = require('./routes/statsRoutes');
 app.use('/api/stats', statsRoutes);
 
 // Đăng ký route lấy toàn bộ danh sách trạm phát sóng (Phụ trách: Minh Trường)
 const stationRoutes = require('./routes/stationRoutes');
 app.use('/api/stations', stationRoutes);
+
+/**
+ * [Route 3] - Module Dữ liệu Không gian Địa lý GeoJSON (PostGIS)
+ * Phụ trách: Ngọc Lân (Full-stack API Không gian - PostGIS)
+ * - GET /api/spatial/stations-geojson: Chuyển đổi tọa độ trạm phát sóng sang định dạng chuẩn GeoJSON.
+ */
+const spatialRoutes = require('./routes/spatialRoutes');
+app.use('/api/spatial', spatialRoutes);
+
 // ============================================================
 // 5. XỬ LÝ LỖI TOÀN CỤC (GLOBAL ERROR HANDLING)
 // ============================================================
@@ -101,5 +111,6 @@ app.listen(PORT, () => {
     console.log(`[ROUTE] Spatial Nearby:   http://localhost:${PORT}/api/analytics/nearby?lat=10.8018&lng=106.7114&radius=3000`);
     console.log(`[ROUTE] High Risk Stats:  http://localhost:${PORT}/api/stats/high-risk`);
     console.log(`[ROUTE] All Stations API: http://localhost:${PORT}/api/stations`);
+    console.log(`[ROUTE] Spatial GeoJSON:  http://localhost:${PORT}/api/spatial/stations-geojson`);
     console.log('====================================================');
 });
