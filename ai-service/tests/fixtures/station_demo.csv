@@ -1,0 +1,8 @@
+station_code,latency_ms,packet_loss_rate,jitter_ms,throughput_mbps,is_anomaly
+HCM_BTS_001,15.2,0.1,1.5,120.5,0
+HCM_BTS_002,22.4,0.4,2.8,95.0,0
+HCM_BTS_003,68.5,4.2,12.1,35.0,1
+HCM_BTS_004,75.0,5.8,15.4,22.0,1
+HCM_BTS_005,18.0,0.2,2.8,110.0,0
+HCM_BTS_006,45.0,2.1,6.5,60.0,0
+HCM_BTS_007,82.0,6.5,18.0,15.5,1

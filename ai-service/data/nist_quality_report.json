@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "archive": "Tranche_A.zip",
+      "sha256": "fec279368ba77afc196896876d63dba205af01c65e6e5e081f63375e7833177b",
+      "files": 833
+    },
+    {
+      "archive": "Tranche_B.zip",
+      "sha256": "4cda74a712e694b027712657567edc4f1bc4e8778cdaceab8c31daa6e300afde",
+      "files": 780
+    },
+    {
+      "archive": "Tranche_C.zip",
+      "sha256": "ebb551c57f17b62324a6d7c53b886578a96ee31d16910151659d08e5b8a59a0a",
+      "files": 420
+    }
+  ],
+  "raw_rows": 15742925,
+  "output_rows": 54488,
+  "missing_kpis": [
+    "packet_loss_rate",
+    "jitter"
+  ],
+  "complete_requested_kpi_contract": false,
+  "label_meaning": "1=cipheroff, 0=cipheron; NOT network degradation",
+  "aggregation": "10-second mean per valid UE observation; zero-latency samples retained before aggregation"
+}

@@ -1,0 +1,300 @@
+{
+  "_schema": "https://data.nist.gov/od/dm/nerdm-schema/v0.7#",
+  "@context": [
+    "https://data.nist.gov/od/dm/nerdm-pub-context.jsonld",
+    {
+      "@base": "ark:/88434/mds2-3430"
+    }
+  ],
+  "@type": [
+    "nrdp:PublicDataResource",
+    "dcat:Dataset"
+  ],
+  "_extensionSchemas": [
+    "https://data.nist.gov/od/dm/nerdm-schema/pub/v0.7#/definitions/PublicDataResource"
+  ],
+  "@id": "ark:/88434/mds2-3430",
+  "ediid": "ark:/88434/mds2-3430",
+  "version": "1.0.1",
+  "doi": "doi:10.18434/mds2-3430",
+  "title": "Radio Access Network Anomalous State Detection Dataset",
+  "contactPoint": {
+    "fn": "Jeanne Quimby",
+    "hasEmail": "mailto:jeanne.quimby@nist.gov"
+  },
+  "modified": "2024-07-05 00:00:00",
+  "status": "available",
+  "landingPage": "https://data.nist.gov/od/id/mds2-3430",
+  "description": [
+    "This project [1] produced two types of data: Working Data and Derived Data. The Working Data includes raw measurements collected from a Radio Access Network (RAN) utilizing commercial-off-the-shelf (COTS) hardware. These measurements were gathered at multiple layers of the Long-Term Evolution (LTE) protocol stack within the RAN, in both a baseline state with encrypted data and an anomalous state with encryption disabled. The data is provided in comma-separated value (.csv) format.",
+    "The Working Data was then processed into Derived Data using Python 3 scripts that performed statistical analyses to explore data distributions. The Derived Data is also available in .csv files. Additionally, human-readable spreadsheets are included, offering measurement notes and definitions related to the Working Data. Please note that the data set is divided into three distinct tranches, or sections, in alignment with the project's design of experiment.",
+    "[1]\u00a0M. Frey, T. Evans, A. Folz, M. Gregg, J. Quimby, J. Rezac. ?Anomalous\u00a0state detection in radio access networks: A proof-of-concept.?\u00a0Journal of Network and Computer Applications. Volume 231, 2024,\u00a0https://doi.org/10.1016/j.jnca.2024.103979."
+  ],
+  "keyword": [
+    "Anomalous state detection",
+    "cellular communication security",
+    "measurement stability",
+    "metrology",
+    "multi-feature detection",
+    "multi-layer architecture",
+    "radio access network."
+  ],
+  "topic": [
+    {
+      "@type": "Concept",
+      "scheme": "https://data.nist.gov/od/dm/nist-themes/v1.1",
+      "tag": "Advanced Communications: Wireless (RF)"
+    }
+  ],
+  "accessLevel": "public",
+  "license": "https://www.nist.gov/open/license",
+  "publisher": {
+    "name": "National Institute of Standards and Technology",
+    "@type": "org:Organization"
+  },
+  "language": [
+    "en"
+  ],
+  "bureauCode": [
+    "006:55"
+  ],
+  "programCode": [
+    "006:052"
+  ],
+  "theme": [
+    "Advanced Communications: Wireless (RF)"
+  ],
+  "components": [
+    {
+      "@id": "cmps/DARE_Data_Public",
+      "@type": [
+        "nrdp:Subcollection"
+      ],
+      "_extensionSchemas": [
+        "https://data.nist.gov/od/dm/nerdm-schema/pub/v0.7#/definitions/Subcollection"
+      ],
+      "filepath": "DARE_Data_Public"
+    },
+    {
+      "@id": "cmps/DARE_Data_Public/Full_dataset",
+      "@type": [
+        "nrdp:Subcollection"
+      ],
+      "_extensionSchemas": [
+        "https://data.nist.gov/od/dm/nerdm-schema/pub/v0.7#/definitions/Subcollection"
+      ],
+      "filepath": "DARE_Data_Public/Full_dataset"
+    },
+    {
+      "@id": "cmps/DARE_Data_Public/Full_dataset/variable_name_key.csv.sha256",
+      "@type": [
+        "nrdp:ChecksumFile",
+        "nrdp:DownloadableFile",
+        "dcat:Distribution"
+      ],
+      "filepath": "DARE_Data_Public/Full_dataset/variable_name_key.csv.sha256",
+      "downloadURL": "https://data.nist.gov/od/ds/ark:/88434/mds2-3430/DARE_Data_Public/Full_dataset/variable_name_key.csv.sha256",
+      "algorithm": {
+        "tag": "sha256",
+        "@type": "Thing"
+      },
+      "describes": "cmps/DARE_Data_Public/Full_dataset/variable_name_key.csv",
+      "description": "SHA-256 checksum value for variable_name_key.csv",
+      "_extensionSchemas": [
+        "https://data.nist.gov/od/dm/nerdm-schema/pub/v0.7#/definitions/ChecksumFile"
+      ],
+      "mediaType": "text/plain",
+      "size": 64,
+      "checksum": {
+        "hash": "d194cf931376fd9968f2e0f13dc261a8209a4b2436a0c1a94b1f5f863b102d11",
+        "algorithm": {
+          "tag": "sha256",
+          "@type": "Thing"
+        }
+      },
+      "valid": true
+    },
+    {
+      "@id": "cmps/DARE_Data_Public/Full_dataset/Tranche_A.zip",
+      "@type": [
+        "nrdp:DataFile",
+        "nrdp:DownloadableFile",
+        "dcat:Distribution"
+      ],
+      "_extensionSchemas": [
+        "https://data.nist.gov/od/dm/nerdm-schema/pub/v0.7#/definitions/DataFile"
+      ],
+      "filepath": "DARE_Data_Public/Full_dataset/Tranche_A.zip",
+      "downloadURL": "https://data.nist.gov/od/ds/mds2-3430/DARE_Data_Public%2FFull_dataset%2FTranche_A.zip",
+      "mediaType": "application/zip",
+      "title": "DARE_Data_Public/Full_dataset/Tranche_A",
+      "size": 1603668649,
+      "checksum": {
+        "hash": "fec279368ba77afc196896876d63dba205af01c65e6e5e081f63375e7833177b",
+        "algorithm": {
+          "tag": "sha256",
+          "@type": "Thing"
+        }
+      }
+    },
+    {
+      "@id": "cmps/DARE_Data_Public/Full_dataset/variable_name_key.csv",
+      "@type": [
+        "nrdp:DataFile",
+        "nrdp:DownloadableFile",
+        "dcat:Distribution"
+      ],
+      "_extensionSchemas": [
+        "https://data.nist.gov/od/dm/nerdm-schema/pub/v0.7#/definitions/DataFile"
+      ],
+      "filepath": "DARE_Data_Public/Full_dataset/variable_name_key.csv",
+      "downloadURL": "https://data.nist.gov/od/ds/mds2-3430/DARE_Data_Public%2FFull_dataset%2Fvariable_name_key.csv",
+      "mediaType": "text/csv",
+      "title": "DARE_Data_Public/Full_dataset/variable_name_key",
+      "size": 20004,
+      "checksum": {
+        "hash": "95d7207ba276ac56475be13fc4156e51acaa4ed1359e358e615f45dfe9b02d35",
+        "algorithm": {
+          "tag": "sha256",
+          "@type": "Thing"
+        }
+      }
+    },
+    {
+      "@id": "cmps/DARE_Data_Public/Full_dataset/Measurands_and_Measurement_Terms.xlsx",
+      "@type": [
+        "nrdp:DataFile",
+        "nrdp:DownloadableFile",
+        "dcat:Distribution"
+      ],
+      "_extensionSchemas": [
+        "https://data.nist.gov/od/dm/nerdm-schema/pub/v0.7#/definitions/DataFile"
+      ],
+      "filepath": "DARE_Data_Public/Full_dataset/Measurands_and_Measurement_Terms.xlsx",
+      "downloadURL": "https://data.nist.gov/od/ds/mds2-3430/DARE_Data_Public%2FFull_dataset%2FMeasurands_and_Measurement_Terms.xlsx",
+      "mediaType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "title": "DARE_Data_Public/Full_dataset/Measurands_and_Measurement_Terms",
+      "size": 122680,
+      "checksum": {
+        "hash": "453df3d7256497863037e58e0287168660c2fa6b75577ed7a8a36117f817261d",
+        "algorithm": {
+          "tag": "sha256",
+          "@type": "Thing"
+        }
+      }
+    },
+    {
+      "@id": "cmps/DARE_Data_Public/Full_dataset/Tranche_B.zip",
+      "@type": [
+        "nrdp:DataFile",
+        "nrdp:DownloadableFile",
+        "dcat:Distribution"
+      ],
+      "_extensionSchemas": [
+        "https://data.nist.gov/od/dm/nerdm-schema/pub/v0.7#/definitions/DataFile"
+      ],
+      "filepath": "DARE_Data_Public/Full_dataset/Tranche_B.zip",
+      "downloadURL": "https://data.nist.gov/od/ds/ark:/88434/mds2-3430/DARE_Data_Public/Full_dataset/Tranche_B.zip",
+      "mediaType": "application/zip",
+      "title": "DARE_Data_Public/Full_dataset/Tranche_B",
+      "size": 1537737653,
+      "checksum": {
+        "hash": "4cda74a712e694b027712657567edc4f1bc4e8778cdaceab8c31daa6e300afde",
+        "algorithm": {
+          "tag": "sha256",
+          "@type": "Thing"
+        }
+      }
+    },
+    {
+      "@id": "cmps/DARE_Data_Public/Full_dataset/Tranche_C.zip",
+      "@type": [
+        "nrdp:DataFile",
+        "nrdp:DownloadableFile",
+        "dcat:Distribution"
+      ],
+      "_extensionSchemas": [
+        "https://data.nist.gov/od/dm/nerdm-schema/pub/v0.7#/definitions/DataFile"
+      ],
+      "filepath": "DARE_Data_Public/Full_dataset/Tranche_C.zip",
+      "downloadURL": "https://data.nist.gov/od/ds/ark:/88434/mds2-3430/DARE_Data_Public/Full_dataset/Tranche_C.zip",
+      "mediaType": "application/zip",
+      "title": "DARE_Data_Public/Full_dataset/Tranche_C",
+      "size": 852087867,
+      "checksum": {
+        "hash": "ebb551c57f17b62324a6d7c53b886578a96ee31d16910151659d08e5b8a59a0a",
+        "algorithm": {
+          "tag": "sha256",
+          "@type": "Thing"
+        }
+      }
+    },
+    {
+      "@id": "cmps/Data Guide for a Radio Access Network Anomalous State Detection Experiment.pdf",
+      "@type": [
+        "nrdp:DataFile",
+        "nrdp:DownloadableFile",
+        "dcat:Distribution"
+      ],
+      "_extensionSchemas": [
+        "https://data.nist.gov/od/dm/nerdm-schema/pub/v0.7#/definitions/DataFile"
+      ],
+      "filepath": "Data Guide for a Radio Access Network Anomalous State Detection Experiment.pdf",
+      "downloadURL": "https://data.nist.gov/od/ds/mds2-3430/Data%20Guide%20for%20a%20Radio%20Access%20Network%20Anomalous%20State%20Detection%20Experiment.pdf",
+      "mediaType": "application/pdf",
+      "description": "A proof-of-concept experiment for anomalous state detection on a radio access network (RAN) was conducted. Its results demonstrate that an anomalous long-term evolution RAN state can be detected at different layers in the network architecture. The data from this experiment are publicly available. Documented here are the experiment design, the processing of the collected data, and their format. Examples of raw data and processed output are given. ",
+      "title": "Data Guide for a Radio Access Network Anomalous State Detection Experiment",
+      "size": 1685917,
+      "checksum": {
+        "hash": "b7a905387e61e4015bc5925269e194ca8ee513a21caa490be8378f42b434b396",
+        "algorithm": {
+          "tag": "sha256",
+          "@type": "Thing"
+        }
+      }
+    }
+  ],
+  "_editStatus": "done",
+  "references": [
+    {
+      "@type": [
+        "npg:Document"
+      ],
+      "@id": "#ref:10.1016/j.jnca.2024.103979",
+      "refType": "IsSupplementTo",
+      "location": "https://doi.org/10.1016/j.jnca.2024.103979",
+      "_extensionSchemas": [
+        "https://data.nist.gov/od/dm/nerdm-schema/bib/v0.7#/definitions/DCiteReference"
+      ],
+      "title": "Anomalous state detection in radio access networks: A proof-of-concept",
+      "issued": "2024-11",
+      "citation": "Frey, M., Evans, T., Folz, A., Gregg, M., Quimby, J., & Rezac, J. D. (2024). Anomalous state detection in radio access networks: A proof-of-concept. Journal of Network and Computer Applications, 231, 103979. https://doi.org/10.1016/j.jnca.2024.103979\n"
+    }
+  ],
+  "annotated": "2025-02-05T19:17:46.428353",
+  "revised": "2024-10-31T19:33:37.000182",
+  "issued": null,
+  "firstIssued": "2024-10-31T19:33:37.000182",
+  "releaseHistory": {
+    "@id": "ark:/88434/mds2-3430.rel",
+    "@type": [
+      "nrdr:ReleaseHistory"
+    ],
+    "hasRelease": [
+      {
+        "version": "1.0.0",
+        "issued": "2024-07-05",
+        "@id": "ark:/88434/mds2-3430/pdr:v/1.0.0",
+        "location": "https://data.nist.gov/od/id/ark:/88434/mds2-3430/pdr:v/1.0.0",
+        "description": "initial release"
+      },
+      {
+        "version": "1.0.1",
+        "issued": "2024-07-05 00:00:00",
+        "@id": "ark:/88434/mds2-3430/pdr:v/1.0.1",
+        "location": "https://data.nist.gov/od/id/ark:/88434/mds2-3430/pdr:v/1.0.1",
+        "description": "metadata update"
+      }
+    ]
+  }
+}
