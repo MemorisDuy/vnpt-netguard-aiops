@@ -103,14 +103,20 @@ app.use((err, req, res, next) => {
 // ============================================================
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log('====================================================');
-    console.log(`[INFO] VNPT NetGuard Backend Server dang chay tai port ${PORT}`);
-    console.log(`[ROUTE] Health Check API: http://localhost:${PORT}/api/health`);
-    console.log(`[ROUTE] Analytics API:    http://localhost:${PORT}/api/analytics/network-health`);
-    console.log(`[ROUTE] Spatial Nearby:   http://localhost:${PORT}/api/analytics/nearby?lat=10.8018&lng=106.7114&radius=3000`);
-    console.log(`[ROUTE] High Risk Stats:  http://localhost:${PORT}/api/stats/high-risk`);
-    console.log(`[ROUTE] All Stations API: http://localhost:${PORT}/api/stations`);
-    console.log(`[ROUTE] Spatial GeoJSON:  http://localhost:${PORT}/api/spatial/stations-geojson`);
-    console.log('====================================================');
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log('====================================================');
+        console.log(`[INFO] VNPT NetGuard Backend Server dang chay tai port ${PORT}`);
+        console.log(`[ROUTE] Health Check API: http://localhost:${PORT}/api/health`);
+        console.log(`[ROUTE] Analytics API:    http://localhost:${PORT}/api/analytics/network-health`);
+        console.log(`[ROUTE] Spatial Nearby:   http://localhost:${PORT}/api/analytics/nearby?lat=10.8018&lng=106.7114&radius=3000`);
+        console.log(`[ROUTE] AI Predict Risk:  http://localhost:${PORT}/api/analytics/predict-risk`);
+        console.log(`[ROUTE] Top Risk Station: http://localhost:${PORT}/api/analytics/top-risk?limit=5`);
+        console.log(`[ROUTE] High Risk Stats:  http://localhost:${PORT}/api/stats/high-risk`);
+        console.log(`[ROUTE] All Stations API: http://localhost:${PORT}/api/stations`);
+        console.log(`[ROUTE] Spatial GeoJSON:  http://localhost:${PORT}/api/spatial/stations-geojson`);
+        console.log('====================================================');
+    });
+}
+
+module.exports = app;

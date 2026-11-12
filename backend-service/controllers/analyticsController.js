@@ -150,8 +150,212 @@ const getStationsNearby = async (req, res) => {
     }
 };
 
+/**
+ * ==============================================================================
+ * CHỨC NĂNG 3: DỰ BÁO NGUY CƠ SUY GIẢM MẠNG QUA AI GATEWAY (FASTAPI INTEGRATION)
+ * ==============================================================================
+ * Tuyến đường (Route): POST /api/analytics/predict-risk
+ * Tham số đầu vào (JSON Body):
+ * - latency_ms: Độ trễ mạng (mili giây)
+ * - packet_loss_rate: Tỷ lệ mất gói tin (%)
+ * - jitter_ms: Độ dao động độ trễ (mili giây)
+ * - throughput_mbps: Tốc độ truyền tải dữ liệu (Mbps)
+ * Nghiệp vụ (Business Logic):
+ * - Xác thực các tham số kỹ thuật đầu vào.
+ * - Đóng vai trò API Gateway kết nối sang microservice ai-service (FastAPI cổng 8000).
+ * - Nhận kết quả dự báo từ mô hình XGBoost: is_anomaly, risk_level, confidence.
+ * - Bổ sung thông tin phân loại tiếng Việt và khuyến nghị kỹ thuật vận hành mạng (NOC).
+ * - Tích hợp cơ chế dự phòng (Fallback Rule-based) khi dịch vụ AI tạm ngắt kết nối.
+ */
+const predictRisk = async (req, res) => {
+    try {
+        const { latency_ms, packet_loss_rate, jitter_ms, throughput_mbps } = req.body;
+
+        // 1. Kiểm tra tính hợp lệ của dữ liệu đầu vào (Validation)
+        if (
+            latency_ms === undefined ||
+            packet_loss_rate === undefined ||
+            jitter_ms === undefined ||
+            throughput_mbps === undefined
+        ) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Vui lòng cung cấp đầy đủ 4 chỉ số KPI: latency_ms, packet_loss_rate, jitter_ms, throughput_mbps'
+            });
+        }
+
+        const latVal = parseFloat(latency_ms);
+        const lossVal = parseFloat(packet_loss_rate);
+        const jitterVal = parseFloat(jitter_ms);
+        const tpVal = parseFloat(throughput_mbps);
+
+        if (isNaN(latVal) || isNaN(lossVal) || isNaN(jitterVal) || isNaN(tpVal)) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Tất cả các chỉ số KPI phải là định dạng số hợp lệ'
+            });
+        }
+
+        if (latVal <= 0 || lossVal < 0 || lossVal > 100 || jitterVal < 0 || tpVal < 0) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Chỉ số KPI nằm ngoài giới hạn cho phép (latency > 0, 0 <= packet_loss <= 100, jitter >= 0, throughput >= 0)'
+            });
+        }
+
+        const payload = {
+            latency_ms: latVal,
+            packet_loss_rate: lossVal,
+            jitter_ms: jitterVal,
+            throughput_mbps: tpVal
+        };
+
+        const aiServiceUrl = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+        let aiResult = null;
+        let dataSource = 'XGBoost_Model_FastAPI';
+
+        try {
+            // Thiết lập gọi API sang AI Service với thời gian chờ tối đa 3000ms
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+            const aiResponse = await fetch(`${aiServiceUrl}/predict`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (aiResponse.ok) {
+                aiResult = await aiResponse.json();
+            } else {
+                throw new Error(`AI Service trả về mã trạng thái ${aiResponse.status}`);
+            }
+        } catch (callError) {
+            // Khi AI Service tạm thời ngoại tuyến, áp dụng luật suy luận dự phòng (Fallback Rule-based)
+            dataSource = 'Fallback_Heuristic_Rule';
+            const isHighRisk = lossVal >= 3.0 || latVal >= 60.0;
+            const isMediumRisk = lossVal >= 1.0 || latVal >= 40.0;
+
+            const fallbackLevel = isHighRisk ? 'HIGH' : (isMediumRisk ? 'MEDIUM' : 'LOW');
+            const fallbackConfidence = isHighRisk ? 0.85 : (isMediumRisk ? 0.55 : 0.15);
+
+            aiResult = {
+                status: 'success',
+                is_anomaly: isHighRisk,
+                risk_level: fallbackLevel,
+                confidence: fallbackConfidence
+            };
+        }
+
+        // 2. Chuyển đổi nhãn tiếng Việt và khuyến nghị kỹ thuật NOC
+        let riskLevelVn = 'An toàn';
+        let recommendation = 'Chất lượng mạng ổn định, duy trì cấu hình hiện tại.';
+
+        if (aiResult.risk_level === 'HIGH') {
+            riskLevelVn = 'Nguy cơ suy giảm cao';
+            recommendation = 'Ưu tiên kiểm tra phân bổ băng thông, giảm tải vô tuyến và kiểm tra đường truyền truyền dẫn.';
+        } else if (aiResult.risk_level === 'MEDIUM') {
+            riskLevelVn = 'Cần theo dõi';
+            recommendation = 'Theo dõi các biến động KPI trong chu kỳ tiếp theo, chuẩn bị phương án điều chỉnh công suất phát.';
+        }
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Dự báo nguy cơ suy giảm chất lượng mạng thành công',
+            data_source: dataSource,
+            input_kpi: payload,
+            prediction: {
+                is_anomaly: aiResult.is_anomaly,
+                risk_level: aiResult.risk_level,
+                risk_level_vn: riskLevelVn,
+                confidence: aiResult.confidence,
+                confidence_percent: `${(aiResult.confidence * 100).toFixed(1)}%`,
+                recommendation: recommendation
+            },
+            evaluated_at: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('[ANALYTICS ERROR predictRisk]:', error.message);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Đã xảy ra lỗi trong quá trình dự báo nguy cơ mạng',
+            details: error.message
+        });
+    }
+};
+
+/**
+ * ==============================================================================
+ * CHỨC NĂNG 4: DANH SÁCH TOP TRẠM NGUY CƠ CAO NHẤT CẦN XỬ LÝ KHẨN CẤP
+ * ==============================================================================
+ * Tuyến đường (Route): GET /api/analytics/top-risk?limit=5
+ * Nghiệp vụ (Business Logic):
+ * - Sắp xếp trạm phát sóng theo thứ tự ưu tiên xử lý sự cố mạng:
+ *   1. Mức rủi ro: HIGH (ưu tiên 1), MEDIUM (ưu tiên 2), LOW (ưu tiên 3).
+ *   2. Tỷ lệ mất gói tin (packet_loss_rate) giảm dần.
+ *   3. Độ trễ (latency_ms) giảm dần.
+ * - Phục vụ hiển thị trên bảng cảnh báo khẩn cấp (Emergency Alert Panel) của trung tâm điều hành NOC.
+ */
+const getTopRiskStations = async (req, res) => {
+    try {
+        const { limit = 5 } = req.query;
+        const parsedLimit = parseInt(limit, 10);
+        const safeLimit = (isNaN(parsedLimit) || parsedLimit <= 0) ? 5 : Math.min(parsedLimit, 50);
+
+        const query = `
+            SELECT 
+                id,
+                station_code,
+                station_name,
+                province,
+                latitude,
+                longitude,
+                latency_ms,
+                packet_loss_rate,
+                jitter_ms,
+                throughput_mbps,
+                risk_level,
+                is_anomaly,
+                updated_at
+            FROM stations
+            ORDER BY 
+                CASE 
+                    WHEN risk_level = 'HIGH' THEN 1
+                    WHEN risk_level = 'MEDIUM' THEN 2
+                    ELSE 3
+                END ASC,
+                packet_loss_rate DESC,
+                latency_ms DESC
+            LIMIT $1;
+        `;
+
+        const result = await db.query(query, [safeLimit]);
+
+        return res.status(200).json({
+            status: 'success',
+            message: `Lấy danh sách top ${result.rowCount} trạm viễn thông có nguy cơ cao nhất thành công`,
+            total_returned: result.rowCount,
+            data: result.rows
+        });
+
+    } catch (error) {
+        console.error('[ANALYTICS ERROR getTopRiskStations]:', error.message);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Lỗi truy vấn cơ sở dữ liệu khi lấy danh sách trạm nguy cơ cao',
+            details: error.message
+        });
+    }
+};
+
 // Xuất các hàm điều khiển để router sử dụng
 module.exports = {
     getNetworkHealth,
-    getStationsNearby
+    getStationsNearby,
+    predictRisk,
+    getTopRiskStations
 };

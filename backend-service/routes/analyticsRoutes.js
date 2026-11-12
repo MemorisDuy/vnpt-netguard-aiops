@@ -29,4 +29,24 @@ router.get('/network-health', analyticsController.getNetworkHealth);
  */
 router.get('/nearby', analyticsController.getStationsNearby);
 
+/**
+ * ------------------------------------------------------------------------------
+ * 3. TUYẾN ĐƯỜNG: DỰ BÁO NGUY CƠ SUY GIẢM MẠNG QUA AI GATEWAY (FASTAPI)
+ * ------------------------------------------------------------------------------
+ * Endpoint: POST /api/analytics/predict-risk
+ * Body JSON: { latency_ms, packet_loss_rate, jitter_ms, throughput_mbps }
+ * Mô tả: Cổng kết nối tích hợp chuyển tiếp dữ liệu đến mô hình XGBoost của AI Service.
+ */
+router.post('/predict-risk', analyticsController.predictRisk);
+
+/**
+ * ------------------------------------------------------------------------------
+ * 4. TUYẾN ĐƯỜNG: DANH SÁCH TOP TRẠM NGUY CƠ CAO NHẤT CẦN XỬ LÝ KHẨN CẤP
+ * ------------------------------------------------------------------------------
+ * Endpoint: GET /api/analytics/top-risk
+ * Tham số query: ?limit=5
+ * Mô tả: Lọc và xếp hạng danh sách trạm viễn thông có nguy cơ cao nhất cho trung tâm NOC.
+ */
+router.get('/top-risk', analyticsController.getTopRiskStations);
+
 module.exports = router;
