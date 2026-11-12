@@ -27,6 +27,31 @@ import "./MapContainer.css";
 // Import lớp bản đồ nhiệt hiển thị trực quan các vùng cảnh báo nguy cơ suy giảm mạng
 import HeatmapLayer from "./HeatmapLayer";
 
+// =====================================================
+// DỮ LIỆU KPI MÔ PHỎNG CỦA TRẠM VIỄN THÔNG
+// Mục đích: Thiết kế và kiểm thử giao diện Popup
+// Sau này sẽ thay thế bằng dữ liệu API GeoJSON
+// =====================================================
+
+const stationKPI = {
+  station_name: "Trạm VNPT TP. Hồ Chí Minh",
+
+  // Độ trễ mạng, đơn vị mili giây (ms)
+  latency_ms: 25,
+
+  // Tỷ lệ mất gói tin, đơn vị phần trăm (%)
+  packet_loss_rate: 0.5,
+
+  // Độ dao động độ trễ, đơn vị mili giây (ms)
+  jitter_ms: 8,
+
+  // Tốc độ truyền dữ liệu, đơn vị Mbps
+  throughput_mbps: 85,
+
+  // Mức độ rủi ro của trạm (dữ liệu thử nghiệm)
+  risk_level: "Trung bình",
+};
+
 function MapContainer() {
   // Tọa độ địa lý trung tâm mặc định: TP. Hồ Chí Minh [Vĩ độ (Lat), Kinh độ (Lng)]
   const hcmPosition = [10.8231, 106.6297];
@@ -64,12 +89,53 @@ function MapContainer() {
         <HeatmapLayer />
 
         {/* Điểm ghim tọa độ trung tâm TP.HCM kèm popup thông tin thử nghiệm */}
-        <Marker position={hcmPosition}>
-          <Popup>
-            <strong>TP. Hồ Chí Minh</strong>
-            <p>VNPT NetGuard AIOps - Bản đồ giám sát thử nghiệm</p>
-          </Popup>
-        </Marker>
+        
+{/* =====================================================
+    MARKER VÀ POPUP THÔNG TIN TRẠM VIỄN THÔNG
+    Khi nhấn vào Marker, hiển thị 4 chỉ số KPI
+    Hiện tại sử dụng dữ liệu mô phỏng stationKPI
+===================================================== */}
+<Marker position={hcmPosition}>
+  <Popup>
+    <div style={{ minWidth: "230px" }}>
+
+      {/* Tên trạm viễn thông */}
+      <h3 style={{ margin: "0 0 10px" }}>
+        {stationKPI.station_name}
+      </h3>
+
+      {/* Chỉ số 1: Độ trễ mạng */}
+      <p>
+        <strong>Latency:</strong> {stationKPI.latency_ms} ms
+      </p>
+
+      {/* Chỉ số 2: Tỷ lệ mất gói tin */}
+      <p>
+        <strong>Packet Loss:</strong> {stationKPI.packet_loss_rate}%
+      </p>
+
+      {/* Chỉ số 3: Độ dao động độ trễ */}
+      <p>
+        <strong>Jitter:</strong> {stationKPI.jitter_ms} ms
+      </p>
+
+      {/* Chỉ số 4: Tốc độ truyền dữ liệu */}
+      <p>
+        <strong>Throughput:</strong> {stationKPI.throughput_mbps} Mbps
+      </p>
+
+      {/* Mức độ rủi ro của trạm */}
+      <p>
+        <strong>Mức rủi ro:</strong>
+        <span style={{ color: "#d97706", fontWeight: "bold" }}>
+          {" "}{stationKPI.risk_level}
+        </span>
+      </p>
+
+    </div>
+  </Popup>
+</Marker>
+
       </LeafletMap>
     </div>
   );
