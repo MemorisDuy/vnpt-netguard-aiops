@@ -1,5 +1,7 @@
 """Kiểm thử tự động độ chính xác của API dự báo POST /predict (vai trò QA).
 
+Đề tài N3.2: Hệ thống dự báo khu vực có nguy cơ suy giảm chất lượng mạng
+Tác giả: Lương Tâm Như (AI / ML Engineer & Model QA)
 Cần chạy train_model.py trước để có model.pkl.
 """
 import json

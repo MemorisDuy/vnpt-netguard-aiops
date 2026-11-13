@@ -1,3 +1,8 @@
+# ==============================================================================
+# SCRIPT: TẢI VÀ XÁC THỰC DỮ LIỆU GỐC NIST 5G RAN
+# Đề tài N3.2: Hệ thống dự báo khu vực có nguy cơ suy giảm chất lượng mạng
+# Phụ trách phát triển: Nguyễn Thị Thanh Thúy (Data Engineer)
+# ==============================================================================
 """Download and verify all three official NIST RAN archives; reruns reuse verified files."""
 from pathlib import Path
 import hashlib

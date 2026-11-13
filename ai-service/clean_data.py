@@ -1,7 +1,7 @@
 # ==============================================================================
 # PIPELINE: TIỀN XỬ LÝ & LÀM SẠCH DỮ LIỆU VIỄN THÔNG (NIST RAN & STATION KPIS)
 # Đề tài N3.2: Hệ thống dự báo khu vực có nguy cơ suy giảm chất lượng mạng
-# Phụ trách phát triển: Nguyễn Thị Thanh Thủy (Data Engineer & Data QA)
+# Phụ trách phát triển: Nguyễn Thị Thanh Thúy (Data Engineer & Data QA)
 # ==============================================================================
 
 from pathlib import Path

@@ -1,6 +1,6 @@
 """Kiểm thử pipeline KPI mạng.
 
-Tác giả: Nguyễn Thị Thanh Thủy
+Tác giả: Nguyễn Thị Thanh Thúy
 Vai trò: Data QA
 """
 import importlib.util

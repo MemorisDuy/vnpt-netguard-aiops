@@ -1,3 +1,8 @@
+# ==============================================================================
+# SERVICE: API DỰ BÁO NGUY CƠ SUY GIẢM CHẤT LƯỢNG MẠNG (FASTAPI + XGBOOST)
+# Đề tài N3.2: Hệ thống dự báo khu vực có nguy cơ suy giảm chất lượng mạng
+# Phụ trách phát triển: Lương Tâm Như (AI / ML Engineer)
+# ==============================================================================
 """API dự báo nguy cơ suy giảm chất lượng mạng. Chạy: python app.py (cổng 8000)."""
 
 from contextlib import asynccontextmanager

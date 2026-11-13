@@ -1,5 +1,7 @@
 # ==============================================================================
 # HUẤN LUYỆN XGBOOST CẢNH BÁO NGUY CƠ SUY GIẢM CHẤT LƯỢNG MẠNG
+# Đề tài N3.2: Hệ thống dự báo khu vực có nguy cơ suy giảm chất lượng mạng
+# Phụ trách phát triển: Lương Tâm Như (AI / ML Engineer)
 # Nhãn: 0 = Bình thường, 1 = Có nguy cơ. Chỉ số ưu tiên: Recall.
 #
 # LƯU Ý KHI BÁO CÁO: packet_loss_rate và is_anomaly được suy ra từ latency theo
