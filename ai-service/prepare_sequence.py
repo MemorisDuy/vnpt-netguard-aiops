@@ -59,7 +59,7 @@ def prepare(frame, window=12, stride=1, step_seconds=10, seed=42):
         gaps += len(cuts)
         split = session_split[run_key[:2]]
         values = run[FEATURES].to_numpy(dtype=np.float64)
-        times = run.timestamp.astype("int64").to_numpy()
+        times = run.timestamp.dt.as_unit("ns").astype("int64").to_numpy()
         label = int(run.label.iloc[0])
         segment_edges = [0, *cuts, len(run)]
         for start, stop in zip(segment_edges, segment_edges[1:]):
