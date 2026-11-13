@@ -115,6 +115,7 @@ if (require.main === module) {
         console.log(`[ROUTE] High Risk Stats:  http://localhost:${PORT}/api/stats/high-risk`);
         console.log(`[ROUTE] All Stations API: http://localhost:${PORT}/api/stations`);
         console.log(`[ROUTE] Spatial GeoJSON:  http://localhost:${PORT}/api/spatial/stations-geojson`);
+        console.log(`[ROUTE] Network Summary API: http://localhost:${PORT}/api/stats/summary`);
         console.log('====================================================');
     });
 }
