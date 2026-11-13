@@ -55,7 +55,7 @@ def test_split_and_scaler_use_train_only(source):
     np.testing.assert_allclose(info["mean"], train[FEATURES].mean())
     np.testing.assert_allclose(info["scale"], [*train[FEATURES[:2]].std(ddof=0), 1])
     for split in groups:
-        assert {tuple((k[0], int(k[1]))) for k in arrays[f"keys_{split}"]} == groups[split]
+        assert {(k[0], int(k[1])) for k in arrays[f"keys_{split}"]} == groups[split]
 
 
 @pytest.mark.parametrize("issue", ["duplicate", "null", "infinite", "label", "schema"])
