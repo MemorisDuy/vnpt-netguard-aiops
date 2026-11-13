@@ -2,36 +2,38 @@
 // COMPONENT: THANH ĐIỀU KHIỂN BÊN TRÁI (SIDEBAR DANH SÁCH TRẠM & BỘ LỌC RỦI RO)
 // Đề tài N3.2: Hệ thống dự báo khu vực có nguy cơ suy giảm chất lượng mạng
 // Phụ trách: Minh Trường (Full-stack & UI Dashboard)
-// ------------------------------------------------------------------------------
-// TIẾN ĐỘ THỰC HIỆN (PROGRESS LOG):
-// - [x] Bước 1: Khởi tạo State quản lý danh sách trạm và bộ lọc rủi ro
-// - [x] Bước 2: Dùng useEffect gọi API GET /api/stations từ Backend
-// - [x] Bước 3: Viết logic lọc trạm theo mức độ rủi ro (ALL / HIGH / MEDIUM / LOW)
-// - [x] Bước 4: Thiết kế giao diện thẻ trạm (Station Card) kèm Badge màu rủi ro
 // ==============================================================================
 
 import { useState, useEffect } from 'react';
 import './Sidebar.css';
 
-/**
- * Component Sidebar hiển thị danh sách trạm phát sóng bên trái màn hình WebGIS
- * @param {Object} props
- * @param {Function} props.onSelectStation - Hàm callback (tùy chọn) truyền trạm được click sang Map của Quý
- */
+// Component Sidebar nhận prop onSelectStation từ App.jsx để truyền trạm được chọn sang bản đồ
 const Sidebar = ({ onSelectStation }) => {
-    // [Bước 1]: Khai báo các State lưu trữ dữ liệu
-    const [stations, setStations] = useState([]);           // Danh sách gốc lấy từ API
-    const [selectedRisk, setSelectedRisk] = useState('ALL'); // Bộ lọc: 'ALL' | 'HIGH' | 'MEDIUM' | 'LOW'
-    const [activeStationId, setActiveStationId] = useState(null); // ID trạm đang được chọn
-    const [loading, setLoading] = useState(true);           // Trạng thái chờ tải API
-    const [error, setError] = useState(null);               // Lưu thông báo lỗi nếu mất kết nối
+    // 1. Khai báo các State lưu trữ dữ liệu và bộ lọc trên giao diện
+    const [stations, setStations] = useState([]);                 // Danh sách trạm lấy từ API
+    const [selectedRisk, setSelectedRisk] = useState('ALL');      // Bộ lọc: 'ALL' | 'HIGH' | 'MEDIUM' | 'LOW'
+    const [searchTerm, setSearchTerm] = useState('');             // Từ khóa tìm kiếm tên hoặc mã trạm
+    const [activeStationId, setActiveStationId] = useState(null); // ID trạm đang được người dùng click chọn
+    const [loading, setLoading] = useState(true);                 // Trạng thái chờ tải dữ liệu API
+    const [error, setError] = useState(null);                     // Thông báo lỗi nếu mất kết nối Backend
 
-    // [Bước 2]: Gọi API GET /api/stations ngay khi Component được render lần đầu
+    // 2. Gọi API GET /api/stations mỗi khi đổi nút lọc (selectedRisk) hoặc gõ tìm kiếm (searchTerm)
     useEffect(() => {
         const fetchStations = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('http://localhost:5000/api/stations');
+
+                // Tạo bộ tham số truy vấn (Query Parameters) gửi lên Backend
+                const params = new URLSearchParams();
+                if (selectedRisk !== 'ALL') {
+                    params.append('risk_level', selectedRisk);
+                }
+                if (searchTerm.trim() !== '') {
+                    params.append('search', searchTerm.trim());
+                }
+
+                // Gọi API lấy danh sách trạm theo điều kiện lọc
+                const response = await fetch(`http://localhost:5000/api/stations?${params.toString()}`);
                 const result = await response.json();
 
                 if (result.status === 'success') {
@@ -49,15 +51,9 @@ const Sidebar = ({ onSelectStation }) => {
         };
 
         fetchStations();
-    }, []);
+    }, [selectedRisk, searchTerm]);
 
-    // [Bước 3]: Lọc danh sách trạm dựa trên nút bộ lọc người dùng đang chọn
-    const filteredStations = stations.filter((station) => {
-        if (selectedRisk === 'ALL') return true;
-        return station.risk_level === selectedRisk;
-    });
-
-    // Hàm đổi nhãn tiếng Anh trong DB sang tiếng Việt hiển thị trên Badge
+    // 3. Hàm đổi nhãn mức độ rủi ro tiếng Anh sang tiếng Việt hiển thị trên Badge
     const getRiskLabel = (riskLevel) => {
         switch (riskLevel) {
             case 'HIGH':
@@ -71,10 +67,12 @@ const Sidebar = ({ onSelectStation }) => {
         }
     };
 
-    // Xử lý khi người dùng click vào 1 trạm trong danh sách
+    // 4. Xử lý khi người dùng click vào 1 thẻ trạm trong danh sách
     const handleStationClick = (station) => {
+        // Đánh dấu trạm đang được chọn để tô sáng viền thẻ
         setActiveStationId(station.id);
-        // Nếu component Map bên ngoài có truyền hàm onSelectStation vào thì gọi để bản đồ zoom tới trạm đó
+
+        // Truyền dữ liệu trạm (kèm tọa độ latitude, longitude) sang App.jsx để bản đồ flyTo tới
         if (onSelectStation) {
             onSelectStation(station);
         }
@@ -82,19 +80,39 @@ const Sidebar = ({ onSelectStation }) => {
 
     return (
         <aside className="sidebar-container">
-            {/* 1. Phần Header của Sidebar */}
+            {/* 1. Phần tiêu đề của Sidebar */}
             <div className="sidebar-header">
-                <h2 className="sidebar-title">📡 VNPT NetGuard</h2>
+                <h2 className="sidebar-title">VNPT NetGuard</h2>
                 <p className="sidebar-subtitle">Giám sát trạm phát sóng BTS</p>
             </div>
 
-            {/* 2. Thanh nút bấm lọc theo mức độ rủi ro */}
+            {/* 2. Ô nhập từ khóa tìm kiếm theo tên trạm hoặc mã trạm */}
+            <div style={{ padding: '12px 16px 0 16px' }}>
+                <input
+                    type="text"
+                    placeholder="Tìm tên hoặc mã trạm (VD: BTS_003)..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid #334155',
+                        backgroundColor: '#1e293b',
+                        color: '#f8fafc',
+                        fontSize: '0.85rem',
+                        outline: 'none'
+                    }}
+                />
+            </div>
+
+            {/* 3. Thanh nút bấm lọc theo mức độ rủi ro */}
             <div className="sidebar-filter">
                 <button
                     className={`filter-btn ${selectedRisk === 'ALL' ? 'active' : ''}`}
                     onClick={() => setSelectedRisk('ALL')}
                 >
-                    Tất cả ({stations.length})
+                    Tất cả
                 </button>
                 <button
                     className={`filter-btn filter-high ${selectedRisk === 'HIGH' ? 'active' : ''}`}
@@ -116,12 +134,16 @@ const Sidebar = ({ onSelectStation }) => {
                 </button>
             </div>
 
-            {/* 3. Danh sách các thẻ trạm phát sóng (Station Cards) */}
+            {/* 4. Danh sách các thẻ trạm phát sóng (Station Cards) */}
             <div className="station-list">
-                {loading && <p className="sidebar-status">⏳ Đang tải danh sách trạm...</p>}
-                {error && <p className="sidebar-status error">⚠️ {error}</p>}
+                {loading && <p className="sidebar-status">Đang tải danh sách trạm...</p>}
+                {error && <p className="sidebar-status error">{error}</p>}
 
-                {!loading && !error && filteredStations.map((station) => (
+                {!loading && !error && stations.length === 0 && (
+                    <p className="sidebar-status">Không tìm thấy trạm phát sóng phù hợp.</p>
+                )}
+
+                {!loading && !error && stations.map((station) => (
                     <div
                         key={station.id}
                         className={`station-card ${activeStationId === station.id ? 'selected' : ''}`}

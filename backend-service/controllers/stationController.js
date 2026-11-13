@@ -1,27 +1,24 @@
 // ==============================================================================
-// CONTROLLER: QUẢN LÝ DANH SÁCH TRẠM PHÁT SÓNG VIỄN THÔNG (STATION CONTROLLER)
+// CONTROLLER: QUẢN LÝ & LỌC DANH SÁCH TRẠM PHÁT SÓNG (stationController.js)
 // Đề tài N3.2: Hệ thống dự báo khu vực có nguy cơ suy giảm chất lượng mạng
 // Phụ trách phát triển: Minh Trường (Full-stack & UI Dashboard)
 // ==============================================================================
 
-// 1. Import kết nối cơ sở dữ liệu PostgreSQL + PostGIS chung của nhóm (dbConfig)
+// 1. Kết nối tới cơ sở dữ liệu PostgreSQL + PostGIS dùng chung của nhóm
 const db = require('../config/dbConfig');
 
-/**
- * ==============================================================================
- * CHỨC NĂNG: LẤY TOÀN BỘ DANH SÁCH TRẠM PHÁT SÓNG (GET ALL STATIONS)
- * ==============================================================================
- * Tuyến đường (Route): GET /api/stations
- * Nghiệp vụ (Business Logic):
- * - Truy vấn toàn bộ danh sách các trạm phát sóng BTS từ bảng `stations` trong CSDL.
- * - Sắp xếp theo `id` tăng dần để thứ tự hiển thị trên Sidebar và Bản đồ luôn đồng nhất.
- * - Trả về đầy đủ thông tin vị trí tọa độ (latitude, longitude), các chỉ số KPI mạng
- *   (latency_ms, packet_loss_rate, jitter_ms, throughput_mbps) và mức độ rủi ro (risk_level).
- */
+// 2. Hàm xử lý API: GET /api/stations
+// Hỗ trợ lọc theo mức độ rủi ro (?risk_level=HIGH) và tìm kiếm (?search=...)
 const getAllStations = async (req, res) => {
     try {
-        // Câu lệnh SQL lấy toàn bộ danh sách trạm phát sóng sắp xếp theo ID tăng dần
-        const query = `
+        // Bước 1: Lấy các tham số lọc từ đường dẫn URL (Query Parameters)
+        // Hỗ trợ cả tên biến 'risk_level' hoặc 'risk' để thuận tiện khi kiểm thử
+        const riskFilter = req.query.risk_level || req.query.risk;
+        const searchKeyword = req.query.search;
+
+        // Bước 2: Khởi tạo câu lệnh SQL gốc
+        // Dùng "WHERE 1=1" để dễ dàng nối thêm các điều kiện "AND" ở bên dưới
+        let query = `
             SELECT 
                 id,
                 station_code,
@@ -37,21 +34,44 @@ const getAllStations = async (req, res) => {
                 is_anomaly,
                 updated_at
             FROM stations
-            ORDER BY id ASC;
+            WHERE 1=1
         `;
 
-        // Thực thi câu truy vấn thông qua Connection Pool của dbConfig
-        const result = await db.query(query);
+        // Mảng values chứa các giá trị truyền vào vị trí $1, $2... trong câu SQL
+        const values = [];
 
-        // Trả về phản hồi HTTP 200 OK cùng danh sách trạm chuẩn định dạng JSON
+        // Bước 3: Nếu người dùng có chọn lọc theo mức độ rủi ro (LOW, MEDIUM, HIGH)
+        if (riskFilter && riskFilter.toUpperCase() !== 'ALL') {
+            values.push(riskFilter.toUpperCase());
+            query += ` AND risk_level = $${values.length}`;
+        }
+
+        // Bước 4: Nếu người dùng có nhập từ khóa tìm kiếm (tìm theo tên trạm hoặc mã trạm)
+        if (searchKeyword && searchKeyword.trim() !== '') {
+            values.push(`%${searchKeyword.trim()}%`);
+            // Toán tử ILIKE giúp tìm kiếm không phân biệt chữ hoa hay chữ thường
+            query += ` AND (station_name ILIKE $${values.length} OR station_code ILIKE $${values.length})`;
+        }
+
+        // Bước 5: Sắp xếp danh sách trạm theo ID tăng dần để thứ tự hiển thị cố định
+        query += ` ORDER BY id ASC;`;
+
+        // Bước 6: Thực thi câu truy vấn thông qua Connection Pool của dbConfig
+        const result = await db.query(query, values);
+
+        // Bước 7: Trả về phản hồi HTTP 200 OK cùng danh sách trạm chuẩn định dạng JSON
         return res.status(200).json({
             status: 'success',
-            message: 'Lấy danh sách toàn bộ trạm phát sóng thành công',
+            message: 'Lấy danh sách trạm phát sóng thành công',
+            filters: {
+                risk_level: riskFilter || 'ALL',
+                search: searchKeyword || ''
+            },
             total_stations: result.rowCount,
             data: result.rows
         });
     } catch (error) {
-        // Bắt lỗi và trả về mã lỗi 500 khi CSDL gặp sự cố
+        // Bắt lỗi và trả về mã lỗi 500 khi cơ sở dữ liệu gặp sự cố
         console.error('[STATION ERROR getAllStations]:', error.message);
         return res.status(500).json({
             status: 'error',
