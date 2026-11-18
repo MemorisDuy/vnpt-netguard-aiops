@@ -141,3 +141,29 @@ def test_boundary_values_accepted_and_consistent(predict_url, payload):
     assert 0 <= body["confidence"] <= 1
     assert body["risk_level"] in {"LOW", "MEDIUM", "HIGH"}
     assert (body["risk_level"] == "HIGH") == body["is_anomaly"]
+
+
+def test_lstm_predict(predict_url):
+    url = predict_url.rsplit("/predict", 1)[0] + "/predict/dl"
+
+    status, body = post(
+        url,
+        {"sequence": [[0, 0, 0] for _ in range(12)]}
+    )
+
+    assert status == 200
+    assert body["status"] == "success"
+    assert body["model"] == "LSTM"
+    assert isinstance(body["is_anomaly"], bool)
+    assert 0 <= body["confidence"] <= 1
+
+
+def test_lstm_invalid_sequence(predict_url):
+    url = predict_url.rsplit("/predict", 1)[0] + "/predict/dl"
+
+    status, _ = post(
+        url,
+        {"sequence": [[0, 0, 0] for _ in range(5)]}
+    )
+
+    assert status == 422
