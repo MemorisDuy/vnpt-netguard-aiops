@@ -86,7 +86,7 @@ def out_of_fold_probabilities(X, y, params) -> np.ndarray:
     return probabilities
 
 
-def select_params(X_train, y_train) -> dict:
+def select_params(X_train, y_train) -> dict[str, int]:
     """Chọn tham số có Recall CV cao nhất; hòa điểm thì lấy log-loss thấp hơn."""
     best_params, best_key = None, None
     names = list(PARAM_GRID)
@@ -99,6 +99,8 @@ def select_params(X_train, y_train) -> dict:
         key = (-recall, loss)
         if best_key is None or key < best_key:
             best_params, best_key = params, key
+    if best_params is None:
+        raise RuntimeError("Không có tổ hợp tham số nào được đánh giá")
     return best_params
 
 
