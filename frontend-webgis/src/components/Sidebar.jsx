@@ -5,9 +5,20 @@
 // ==============================================================================
 
 import { useState, useEffect } from 'react';
+import { mockStations } from '../data/mockStations';
 import './Sidebar.css';
 
 // Component Sidebar nhận prop onSelectStation từ App.jsx để truyền trạm được chọn sang bản đồ
+// ==============================================================================
+// FRONTEND TEST CONFIGURATION
+// Người bổ sung: Võ Ngọc Quý - Web GIS Engineer
+// Sidebar gốc: Minh Trường - Full-stack & UI Dashboard
+//
+// MOCK: Sử dụng dữ liệu giả lập để phát triển Frontend.
+// API : Sử dụng Backend để Minh Trường tích hợp và kiểm thử.
+// ==============================================================================
+
+const DATA_MODE = 'MOCK';
 const Sidebar = ({ onSelectStation }) => {
     // 1. Khai báo các State lưu trữ dữ liệu và bộ lọc trên giao diện
     const [stations, setStations] = useState([]);                 // Danh sách trạm lấy từ API
@@ -20,6 +31,39 @@ const Sidebar = ({ onSelectStation }) => {
     // 2. Gọi API GET /api/stations mỗi khi đổi nút lọc (selectedRisk) hoặc gõ tìm kiếm (searchTerm)
     useEffect(() => {
         const fetchStations = async () => {
+            // BỔ SUNG: Võ Ngọc Quý - Xử lý dữ liệu giả lập để kiểm thử Frontend
+if (DATA_MODE === 'MOCK') {
+
+    // Chuẩn hóa từ khóa tìm kiếm thành chữ thường
+    const keyword = searchTerm.trim().toLowerCase();
+
+    // Lọc danh sách trạm theo mức độ rủi ro và từ khóa tìm kiếm
+    const filteredStations = mockStations.filter((station) => {
+
+        // Kiểm tra mức độ rủi ro theo bộ lọc được chọn
+        const matchesRisk =
+            selectedRisk === 'ALL' ||
+            station.risk_level === selectedRisk;
+
+        // Kiểm tra tên trạm hoặc mã trạm có chứa từ khóa tìm kiếm
+        const matchesSearch =
+            station.station_name.toLowerCase().includes(keyword) ||
+            station.station_code.toLowerCase().includes(keyword);
+
+        // Chỉ giữ lại các trạm thỏa mãn cả hai điều kiện
+        return matchesRisk && matchesSearch;
+    });
+
+    // Cập nhật danh sách trạm hiển thị trên Sidebar
+    setStations(filteredStations);
+
+    // Xóa thông báo lỗi và kết thúc trạng thái tải dữ liệu
+    setError(null);
+    setLoading(false);
+
+    // Không gọi Backend khi đang sử dụng dữ liệu giả lập
+    return;
+}
             try {
                 setLoading(true);
 

@@ -1,145 +1,325 @@
-// ==============================================================================
-// COMPONENT: MAP CONTAINER (BẢN ĐỒ ĐIỀU HÀNH WEB GIS)
-// Đề tài N3.2: Hệ thống dự báo khu vực có nguy cơ suy giảm chất lượng mạng
-// Phụ trách phát triển: Võ Ngọc Quý (Web GIS Engineer)
-// ==============================================================================
 
-// Import các thành phần giao diện từ thư viện react-leaflet:
-// - MapContainer (đổi tên thành LeafletMap): Khung chứa bản đồ gốc của thư viện Leaflet.
-// - TileLayer: Lớp bản đồ nền địa lý (sử dụng nguồn bản đồ mở OpenStreetMap).
-// - Marker: Điểm ghim định vị tọa độ trạm cụ thể trên bản đồ.
-// - Popup: Hộp thoại thông tin chi tiết hiện ra khi người dùng nhấp chuột vào điểm ghim.
-// - ZoomControl: Nút bấm điều khiển phóng to / thu nhỏ bản đồ (+ / -).
+ // ==============================================================================
+ // COMPONENT: MAP CONTAINER - BẢN ĐỒ GIÁM SÁT MẠNG WEB GIS
+ // Đề tài N3.2: Hệ thống dự báo khu vực có nguy cơ suy giảm chất lượng mạng
+ // Phụ trách: Võ Ngọc Quý (Web GIS Engineer)
+ //
+ // CHỨC NĂNG:
+ // - Hiển thị bản đồ OpenStreetMap bằng React Leaflet.
+ // - Hiển thị các vùng cảnh báo từ HeatmapLayer.
+ // - Hiển thị trạm viễn thông và thông số KPI.
+ // - Tự động di chuyển bản đồ khi chọn trạm từ Sidebar.
+ // - Hỗ trợ MOCK để phát triển Frontend, API để tích hợp Backend sau này.
+ // ==============================================================================
+
+import { useEffect, useState } from "react";
+
 import {
   MapContainer as LeafletMap,
   TileLayer,
   Marker,
   Popup,
-  ZoomControl
+  ZoomControl,
+  CircleMarker,
+  useMap,
 } from "react-leaflet";
 
-// Import tệp định dạng CSS chuẩn của Leaflet (bắt buộc để các mảnh bản đồ không bị vỡ bố cục)
 import "leaflet/dist/leaflet.css";
-
-// Import tệp CSS tùy biến riêng cho khung bản đồ (đặt chiều cao tối thiểu và bo góc)
 import "./MapContainer.css";
 
-// Import lớp bản đồ nhiệt hiển thị trực quan các vùng cảnh báo nguy cơ suy giảm mạng
+// Import lớp hiển thị vùng cảnh báo nguy cơ suy giảm mạng
 import HeatmapLayer from "./HeatmapLayer";
 
-// =====================================================
-// DỮ LIỆU KPI MÔ PHỎNG CỦA TRẠM VIỄN THÔNG
-// Mục đích: Thiết kế và kiểm thử giao diện Popup
-// Sau này sẽ thay thế bằng dữ liệu API GeoJSON
-// =====================================================
+// Import dữ liệu giả lập dùng chung với Sidebar
+import { mockStations } from "../../data/mockStations";
 
-const stationKPI = {
-  station_name: "Trạm VNPT TP. Hồ Chí Minh",
+// Import API do Ngọc Lân phát triển để phục vụ tích hợp Backend
+import {
+  getSpatialMapData,
+  RISK_COLOR_MAP,
+  RISK_LABEL_VN_MAP,
+} from "../../services/api";
 
-  // Độ trễ mạng, đơn vị mili giây (ms)
-  latency_ms: 25,
+// Chọn nguồn dữ liệu cho bản đồ: MOCK hoặc API
+// Khi Backend sẵn sàng, chuyển thành "API"
+const DATA_MODE = "MOCK";
 
-  // Tỷ lệ mất gói tin, đơn vị phần trăm (%)
-  packet_loss_rate: 0.5,
+// Trung tâm bản đồ mặc định tại TP. Hồ Chí Minh
+const HCM_POSITION = [10.8231, 106.6297];
 
-  // Độ dao động độ trễ, đơn vị mili giây (ms)
-  jitter_ms: 8,
+// ==============================================================================
+// 1. COMPONENT ĐIỀU KHIỂN VỊ TRÍ BẢN ĐỒ
+// Bổ sung: Võ Ngọc Quý - Web GIS Engineer
+// ==============================================================================
 
-  // Tốc độ truyền dữ liệu, đơn vị Mbps
-  throughput_mbps: 85,
+function MapFlyToStation({ selectedStation }) {
+  // Lấy đối tượng bản đồ Leaflet đang hoạt động
+  const map = useMap();
 
-  // Mức độ rủi ro của trạm (dữ liệu thử nghiệm)
-  risk_level: "Trung bình",
-};
+  useEffect(() => {
+    // Không di chuyển nếu chưa chọn trạm từ Sidebar
+    if (!selectedStation) return;
 
-function MapContainer() {
-  // Tọa độ địa lý trung tâm mặc định: TP. Hồ Chí Minh [Vĩ độ (Lat), Kinh độ (Lng)]
-  const hcmPosition = [10.8231, 106.6297];
+    // Lấy tọa độ trạm được chọn
+    const latitude = Number(selectedStation.latitude);
+    const longitude = Number(selectedStation.longitude);
+
+    // Kiểm tra tọa độ hợp lệ trước khi điều khiển bản đồ
+    if (
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude) ||
+      latitude < -90 ||
+      latitude > 90 ||
+      longitude < -180 ||
+      longitude > 180
+    ) {
+      console.warn("Tọa độ trạm không hợp lệ:", selectedStation);
+      return;
+    }
+
+    // Di chuyển và phóng to bản đồ đến vị trí trạm
+    map.flyTo([latitude, longitude], 15, {
+      animate: true,
+      duration: 1.5,
+    });
+  }, [map, selectedStation]);
+
+  // Component chỉ xử lý điều khiển bản đồ
+  return null;
+}
+
+// ==============================================================================
+// 2. HÀM HIỂN THỊ THÔNG SỐ KPI
+// ==============================================================================
+
+function showKPI(value, unit = "") {
+  // Hiển thị thông báo khi trạm chưa có dữ liệu KPI
+  if (value === undefined || value === null || value === "") {
+    return "Chưa có dữ liệu";
+  }
+
+  return `${value}${unit}`;
+}
+
+// ==============================================================================
+// 3. COMPONENT CHÍNH HIỂN THỊ BẢN ĐỒ WEB GIS
+// ==============================================================================
+
+function MapContainer({ selectedStation }) {
+  // Lưu danh sách trạm đang hiển thị trên bản đồ
+  const [stations, setStations] = useState(
+    DATA_MODE === "MOCK" ? mockStations : []
+  );
+
+  // Lưu trạng thái tải dữ liệu và lỗi kết nối
+  const [loading, setLoading] = useState(DATA_MODE === "API");
+  const [error, setError] = useState("");
+
+  // Tải dữ liệu trạm theo chế độ MOCK hoặc API
+  useEffect(() => {
+    // Chế độ MOCK sử dụng dữ liệu giả lập từ file dùng chung
+    if (DATA_MODE === "MOCK") {
+      setStations(mockStations);
+      return;
+    }
+
+    // Chế độ API gọi Backend do Ngọc Lân phát triển
+    let cancelled = false;
+
+    async function loadMapData() {
+      try {
+        setLoading(true);
+        setError("");
+
+        // Gọi API lấy dữ liệu không gian của các trạm
+        const data = await getSpatialMapData();
+
+        if (!cancelled) {
+          // Cập nhật danh sách trạm từ Backend
+          setStations(data.stations || []);
+        }
+      } catch (err) {
+        console.error("Lỗi tải dữ liệu Web GIS:", err);
+
+        if (!cancelled) {
+          // Thông báo lỗi khi Backend chưa sẵn sàng
+          setError("Chưa kết nối được Backend tại cổng 5000.");
+        }
+      } finally {
+        if (!cancelled) {
+          // Kết thúc trạng thái tải dữ liệu
+          setLoading(false);
+        }
+      }
+    }
+
+    loadMapData();
+
+    // Ngăn cập nhật state khi component đã bị hủy
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="map-wrapper">
-      {/* 
-        Khởi tạo khung bản đồ LeafletMap:
-        - center: Đặt góc nhìn trung tâm tại tọa độ TP. Hồ Chí Minh.
-        - zoom: Mức độ phóng to mặc định (cấp 12 phù hợp bao quát mạng lưới đô thị).
-        - zoomControl={false}: Tắt nút zoom mặc định ở góc trên bên trái để tùy chỉnh vị trí.
-        - scrollWheelZoom={true}: Cho phép người vận hành lăn chuột để phóng to / thu nhỏ linh hoạt.
-        - className: Gán class CSS network-map đảm bảo chiều cao tối thiểu 500px.
-      */}
+      {/* Hiển thị trạng thái tải dữ liệu từ Backend */}
+      {loading && (
+        <p style={{ color: "#2563eb" }}>
+          Đang tải dữ liệu trạm viễn thông...
+        </p>
+      )}
+
+      {/* Hiển thị lỗi kết nối khi đang ở chế độ API */}
+      {error && (
+        <p style={{ color: "#dc2626" }}>
+          ⚠️ {error} Bản đồ nền vẫn hoạt động bình thường.
+        </p>
+      )}
+
+      {/* Khung bản đồ Leaflet */}
       <LeafletMap
-        center={hcmPosition}
+        center={HCM_POSITION}
         zoom={12}
         zoomControl={false}
         scrollWheelZoom={true}
         className="network-map"
       >
-        {/* 
-          Lớp bản đồ nền địa lý (Base Map Tile):
-          Tải các mảnh bản đồ số (map tiles) trực tiếp từ máy chủ OpenStreetMap.
-        */}
+        {/* Hiển thị bản đồ nền OpenStreetMap */}
         <TileLayer
           attribution="&copy; OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* Bố trí nút điều khiển zoom ở góc dưới bên phải màn hình để không che khuất góc nhìn */}
+        {/* Nút điều khiển phóng to và thu nhỏ bản đồ */}
         <ZoomControl position="bottomright" />
 
-        {/* Kết xuất lớp bản đồ nhiệt trực quan hóa các vùng cảnh báo rủi ro */}
+        {/* Di chuyển bản đồ khi người dùng chọn trạm từ Sidebar */}
+        <MapFlyToStation selectedStation={selectedStation} />
+
+        {/* Giữ lớp cảnh báo nguy cơ suy giảm mạng hiện tại */}
         <HeatmapLayer />
 
-        {/* Điểm ghim tọa độ trung tâm TP.HCM kèm popup thông tin thử nghiệm */}
-        
-{/* =====================================================
-    MARKER VÀ POPUP THÔNG TIN TRẠM VIỄN THÔNG
-    Khi nhấn vào Marker, hiển thị 4 chỉ số KPI
-    Hiện tại sử dụng dữ liệu mô phỏng stationKPI
-===================================================== */}
-<Marker position={hcmPosition}>
-  <Popup>
-    <div style={{ minWidth: "230px" }}>
+        {/* Hiển thị các trạm viễn thông trên bản đồ */}
+        {stations.map((station, index) => {
+          // Chuẩn hóa mức độ rủi ro của trạm
+          const riskKey = String(
+            station.risk_level || "LOW"
+          ).toUpperCase();
 
-      {/* Tên trạm viễn thông */}
-      <h3 style={{ margin: "0 0 10px" }}>
-        {stationKPI.station_name}
-      </h3>
+          // Lấy màu hiển thị tương ứng với mức độ rủi ro
+          const riskColor =
+            RISK_COLOR_MAP[riskKey] ||
+            (riskKey === "HIGH"
+              ? "#ef4444"
+              : riskKey === "MEDIUM"
+              ? "#eab308"
+              : "#22c55e");
 
-      {/* Chỉ số 1: Độ trễ mạng */}
-      <p>
-        <strong>Latency:</strong> {stationKPI.latency_ms} ms
-      </p>
+          // Chuyển mức độ rủi ro sang nhãn tiếng Việt
+          const riskLabel =
+            RISK_LABEL_VN_MAP[riskKey] ||
+            (riskKey === "HIGH"
+              ? "Nguy cơ cao"
+              : riskKey === "MEDIUM"
+              ? "Cảnh báo"
+              : "An toàn");
 
-      {/* Chỉ số 2: Tỷ lệ mất gói tin */}
-      <p>
-        <strong>Packet Loss:</strong> {stationKPI.packet_loss_rate}%
-      </p>
+          // Lấy tọa độ từ dữ liệu MOCK hoặc API
+          const position = Array.isArray(station.position)
+            ? station.position
+            : [
+                Number(station.latitude),
+                Number(station.longitude),
+              ];
 
-      {/* Chỉ số 3: Độ dao động độ trễ */}
-      <p>
-        <strong>Jitter:</strong> {stationKPI.jitter_ms} ms
-      </p>
+          // Bỏ qua các trạm có tọa độ không hợp lệ
+          if (
+            position.length !== 2 ||
+            !Number.isFinite(Number(position[0])) ||
+            !Number.isFinite(Number(position[1]))
+          ) {
+            return null;
+          }
 
-      {/* Chỉ số 4: Tốc độ truyền dữ liệu */}
-      <p>
-        <strong>Throughput:</strong> {stationKPI.throughput_mbps} Mbps
-      </p>
+          return (
+            <CircleMarker
+              key={station.id ?? index}
+              center={position}
+              radius={8}
+              pathOptions={{
+                color: "#ffffff",
+                weight: 2,
+                fillColor: riskColor,
+                fillOpacity: 1,
+              }}
+            >
+              {/* Popup hiển thị thông tin chi tiết của trạm */}
+              <Popup>
+                <div style={{ minWidth: "230px" }}>
+                  <h3 style={{ margin: "0 0 10px" }}>
+                    {station.station_name ||
+                      station.name ||
+                      "Trạm viễn thông"}
+                  </h3>
 
-      {/* Mức độ rủi ro của trạm */}
-      <p>
-        <strong>Mức rủi ro:</strong>
-        <span style={{ color: "#d97706", fontWeight: "bold" }}>
-          {" "}{stationKPI.risk_level}
-        </span>
-      </p>
+                  <p>
+                    <strong>Mã trạm:</strong>{" "}
+                    {station.station_code || "Chưa có dữ liệu"}
+                  </p>
 
-    </div>
-  </Popup>
-</Marker>
+                  <p>
+                    <strong>Độ trễ:</strong>{" "}
+                    {showKPI(station.latency_ms, " ms")}
+                  </p>
 
+                  <p>
+                    <strong>Tỷ lệ mất gói:</strong>{" "}
+                    {showKPI(station.packet_loss_rate, "%")}
+                  </p>
+
+                  <p>
+                    <strong>Jitter:</strong>{" "}
+                    {showKPI(station.jitter_ms, " ms")}
+                  </p>
+
+                  <p>
+                    <strong>Băng thông:</strong>{" "}
+                    {showKPI(station.throughput_mbps, " Mbps")}
+                  </p>
+
+                  <p>
+                    <strong>Mức độ rủi ro:</strong>{" "}
+                    <span
+                      style={{
+                        color: riskColor,
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {riskLabel}
+                    </span>
+                  </p>
+
+                  <p>
+                    <strong>Điểm rủi ro:</strong>{" "}
+                    {showKPI(station.risk_score, "/100")}
+                  </p>
+
+                  <p>
+                    <strong>Nguồn dữ liệu:</strong>{" "}
+                    {DATA_MODE === "MOCK"
+                      ? "Mô phỏng Frontend"
+                      : "Backend API"}
+                  </p>
+                </div>
+              </Popup>
+            </CircleMarker>
+          );
+        })}
       </LeafletMap>
     </div>
   );
 }
 
-// Xuất component để App.jsx import vào giao diện chính
+// Xuất component để App.jsx sử dụng
 export default MapContainer;
