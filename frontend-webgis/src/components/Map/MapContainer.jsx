@@ -173,7 +173,7 @@ function MapContainer({ selectedStation }) {
       {/* Hiển thị lỗi kết nối khi đang ở chế độ API */}
       {error && (
         <p style={{ color: "#dc2626" }}>
-          ⚠️ {error} Bản đồ nền vẫn hoạt động bình thường.
+           {error} Bản đồ nền vẫn hoạt động bình thường.
         </p>
       )}
 
