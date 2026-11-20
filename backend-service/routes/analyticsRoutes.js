@@ -49,4 +49,23 @@ router.post('/predict-risk', analyticsController.predictRisk);
  */
 router.get('/top-risk', analyticsController.getTopRiskStations);
 
+/**
+ * ------------------------------------------------------------------------------
+ * 5. TUYẾN ĐƯỜNG: THỐNG KÊ SỨC KHỎE CELL 4G LTE CHUẨN VNPT NET (1 TRẠM - 3 CELL)
+ * ------------------------------------------------------------------------------
+ * Endpoint: GET /api/analytics/vnpt-cell-health
+ * Mô tả: Thống kê số lượng Cell theo 2 nhóm cảnh báo VNPT (A1_rule_vh, A1_rule_kt) và theo tỉnh.
+ */
+router.get('/vnpt-cell-health', analyticsController.getVnptCellHealth);
+
+/**
+ * ------------------------------------------------------------------------------
+ * 6. TUYẾN ĐƯỜNG: ĐÁNH GIÁ RULE-BASE TẦNG 1 CHO CELL THEO NGƯỠNG VNPT NET
+ * ------------------------------------------------------------------------------
+ * Endpoint: POST /api/analytics/evaluate-vnpt-cell
+ * Body JSON: { traffic_gb, cssr, service_drop_all, traffic_percent_hour, user_dl_avg_thput_percent_hour }
+ * Mô tả: Kiểm tra 5 Anomaly Tầng 1 của VNPT NET và phân loại A1_rule_vh / A1_rule_kt.
+ */
+router.post('/evaluate-vnpt-cell', analyticsController.evaluateVnptCellRule);
+
 module.exports = router;
