@@ -42,7 +42,7 @@ import {
 
 // Chọn nguồn dữ liệu cho bản đồ: MOCK hoặc API
 // Khi Backend sẵn sàng, chuyển thành "API"
-const DATA_MODE = "MOCK";
+const DATA_MODE = "API";
 
 // Trung tâm bản đồ mặc định tại TP. Hồ Chí Minh
 const HCM_POSITION = [10.8231, 106.6297];
@@ -173,7 +173,7 @@ function MapContainer({ selectedStation }) {
       {/* Hiển thị lỗi kết nối khi đang ở chế độ API */}
       {error && (
         <p style={{ color: "#dc2626" }}>
-           {error} Bản đồ nền vẫn hoạt động bình thường.
+         {error} Bản đồ nền vẫn hoạt động bình thường.
         </p>
       )}
 

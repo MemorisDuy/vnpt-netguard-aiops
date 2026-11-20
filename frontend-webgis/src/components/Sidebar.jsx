@@ -18,7 +18,7 @@ import './Sidebar.css';
 // API : Sử dụng Backend để Minh Trường tích hợp và kiểm thử.
 // ==============================================================================
 
-const DATA_MODE = 'MOCK';
+const DATA_MODE = 'API';
 const Sidebar = ({ onSelectStation }) => {
     // 1. Khai báo các State lưu trữ dữ liệu và bộ lọc trên giao diện
     const [stations, setStations] = useState([]);                 // Danh sách trạm lấy từ API
