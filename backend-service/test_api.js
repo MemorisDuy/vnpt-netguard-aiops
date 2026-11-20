@@ -163,6 +163,50 @@ async function runTests() {
             'GET /api/analytics/nearby bat loi 400 khi thieu lat va lng'
         );
 
+        // Test 7: Danh gia KPI Cell VNPT NET - Nhom Van hanh (A1_rule_vh) khi cssr < 95% va drop > 5%
+        const res7 = await sendRequest({
+            hostname: 'localhost',
+            port: TEST_PORT,
+            path: '/api/analytics/evaluate-vnpt-cell',
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        }, { traffic_gb: 6.2, cssr: 91.2, service_drop_all: 6.4 });
+        assert(
+            res7.statusCode === 200 &&
+            res7.body.data.is_anomaly === true &&
+            res7.body.data.a1_rule_group === 'A1_rule_vh',
+            'POST /api/analytics/evaluate-vnpt-cell phat hien dung loi A1_rule_vh (Van hanh)'
+        );
+
+        // Test 8: Danh gia KPI Cell VNPT NET - Nhom Ky thuat (A1_rule_kt) khi Traffic tang > 450%
+        const res8 = await sendRequest({
+            hostname: 'localhost',
+            port: TEST_PORT,
+            path: '/api/analytics/evaluate-vnpt-cell',
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        }, { traffic_gb: 4.0, cssr: 98.5, service_drop_all: 1.0, traffic_percent_hour: 520 });
+        assert(
+            res8.statusCode === 200 &&
+            res8.body.data.is_anomaly === true &&
+            res8.body.data.a1_rule_group === 'A1_rule_kt',
+            'POST /api/analytics/evaluate-vnpt-cell phat hien dung loi A1_rule_kt (Ky thuat)'
+        );
+
+        // Test 9: Bat loi 400 khi thieu tham so VNPT Cell
+        const res9 = await sendRequest({
+            hostname: 'localhost',
+            port: TEST_PORT,
+            path: '/api/analytics/evaluate-vnpt-cell',
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        }, { traffic_gb: 4.0 });
+        assert(
+            res9.statusCode === 400 &&
+            res9.body.status === 'error',
+            'POST /api/analytics/evaluate-vnpt-cell bat loi 400 khi thieu cssr va service_drop_all'
+        );
+
     } catch (err) {
         console.error('[LOI TRONG QUA TRINH TEST]:', err.message);
     } finally {

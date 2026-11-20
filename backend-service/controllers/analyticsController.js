@@ -353,9 +353,207 @@ const getTopRiskStations = async (req, res) => {
 };
 
 // Xuất các hàm điều khiển để router sử dụng
+/**
+ * ==============================================================================
+ * CHỨC NĂNG 5: ĐÁNH GIÁ SỨC KHỎE MẠNG THEO MÔ HÌNH CELL 4G LTE CỦA VNPT NET
+ * ==============================================================================
+ * Tuyến đường (Route): GET /api/analytics/vnpt-cell-health
+ * Nghiệp vụ (Business Logic):
+ * - Tổng hợp toàn bộ các Cell từ bảng network_cells (mô hình 1 Trạm - 3 Cell).
+ * - Phân tách rõ số lượng Cell bất thường theo 2 bộ phận nghiệp vụ VNPT NET:
+ *   + A1_rule_vh (Nhóm Vận hành): Lỗi cssr, service_drop_all, Traffic down.
+ *   + A1_rule_kt (Nhóm Kỹ thuật): Lỗi Traffic up hoặc suy giảm user_dl_avg_thput.
+ * - Tính trung bình 4 chỉ số KPI trọng tâm: cssr, service_drop_all, traffic_gb, user_dl_avg_thput.
+ * - Thống kê chi tiết số lượng Cell lỗi theo từng mã tỉnh (CTO, BTE, AGG).
+ */
+const getVnptCellHealth = async (req, res) => {
+    try {
+        const summaryQuery = `
+            SELECT
+                COUNT(*)::int AS total_cells,
+                COUNT(DISTINCT node_name)::int AS total_nodes,
+                COUNT(*) FILTER (WHERE a1_rule_group = 'NORMAL')::int AS normal_cells,
+                COUNT(*) FILTER (WHERE a1_rule_group = 'A1_rule_vh')::int AS vh_alert_cells,
+                COUNT(*) FILTER (WHERE a1_rule_group = 'A1_rule_kt')::int AS kt_alert_cells,
+                COUNT(*) FILTER (WHERE is_anomaly = TRUE)::int AS total_anomaly_cells,
+                COALESCE(ROUND(AVG(cssr)::numeric, 2), 0) AS avg_cssr,
+                COALESCE(ROUND(AVG(service_drop_all)::numeric, 2), 0) AS avg_service_drop_all,
+                COALESCE(ROUND(AVG(traffic_gb)::numeric, 2), 0) AS avg_traffic_gb,
+                COALESCE(ROUND(AVG(user_dl_avg_thput)::numeric, 2), 0) AS avg_user_dl_thput
+            FROM network_cells;
+        `;
+
+        const provinceQuery = `
+            SELECT
+                province_code,
+                province,
+                COUNT(*)::int AS total_cells,
+                COUNT(*) FILTER (WHERE is_anomaly = TRUE)::int AS anomaly_cells,
+                COUNT(*) FILTER (WHERE a1_rule_group = 'A1_rule_vh')::int AS vh_alert_cells,
+                COUNT(*) FILTER (WHERE a1_rule_group = 'A1_rule_kt')::int AS kt_alert_cells
+            FROM network_cells
+            GROUP BY province_code, province
+            ORDER BY anomaly_cells DESC, province_code ASC;
+        `;
+
+        const [summaryRes, provinceRes] = await Promise.all([
+            db.query(summaryQuery),
+            db.query(provinceQuery)
+        ]);
+
+        const summary = summaryRes.rows[0];
+        const systemStatus = summary.total_anomaly_cells > 0 ? 'WARNING' : 'STABLE';
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Phân tích sức khỏe Cell 4G LTE theo chuẩn VNPT NET thành công',
+            data: {
+                ...summary,
+                system_status: systemStatus,
+                by_province: provinceRes.rows,
+                evaluated_at: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        console.error('[ANALYTICS ERROR getVnptCellHealth]:', error.message);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Lỗi truy vấn cơ sở dữ liệu khi phân tích sức khỏe Cell VNPT NET',
+            details: error.message
+        });
+    }
+};
+
+/**
+ * ==============================================================================
+ * CHỨC NĂNG 6: ĐÁNH GIÁ RULE-BASE TẦNG 1 CHO 1 CELL THEO QUY CHUẨN VNPT NET
+ * ==============================================================================
+ * Tuyến đường (Route): POST /api/analytics/evaluate-vnpt-cell
+ * Body JSON: { traffic_gb, cssr, service_drop_all, traffic_percent_hour, user_dl_avg_thput_percent_hour }
+ * Nghiệp vụ (Business Logic - Khớp 100% file KPI Main của VNPT NET):
+ * - Anomaly 1 (cssr - Vận hành): Lưu lượng >5GB (<95%), 1-5GB (<95%), 0.1-1GB (<90%), <0.1GB (<75%).
+ * - Anomaly 2 (service_drop_all - Vận hành): >5GB (>5%), 1-5GB (>5%), 0.1-1GB (>10%), <0.1GB (>20%).
+ * - Anomaly 3 (Traffic down - Vận hành): >7GB (<10%), 3-7GB (<10%), 1-3GB (<5%).
+ * - Anomaly 4 (Traffic up - Kỹ thuật): >3GB (>450%), 0.5-3GB (>450%), <0.5GB (>1000%).
+ * - Anomaly 5 (Throughput down - Kỹ thuật): >10GB (<30%), 5-10GB (<30%), 2-5GB (<20%), 1-2GB (<10%), <1GB (<5%).
+ */
+const evaluateVnptCellRule = async (req, res) => {
+    try {
+        const {
+            traffic_gb,
+            cssr,
+            service_drop_all,
+            traffic_percent_hour = 100,
+            user_dl_avg_thput_percent_hour = 100
+        } = req.body;
+
+        if (traffic_gb === undefined || cssr === undefined || service_drop_all === undefined) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Vui lòng cung cấp đầy đủ các chỉ số bắt buộc: traffic_gb, cssr, service_drop_all'
+            });
+        }
+
+        const trafficVal = parseFloat(traffic_gb);
+        const cssrVal = parseFloat(cssr);
+        const dropVal = parseFloat(service_drop_all);
+        const trafficPctVal = parseFloat(traffic_percent_hour);
+        const thputPctVal = parseFloat(user_dl_avg_thput_percent_hour);
+
+        if (
+            isNaN(trafficVal) || isNaN(cssrVal) || isNaN(dropVal) ||
+            isNaN(trafficPctVal) || isNaN(thputPctVal) ||
+            trafficVal < 0 || cssrVal < 0 || cssrVal > 100 || dropVal < 0 || dropVal > 100
+        ) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Giá trị KPI Cell không hợp lệ (traffic_gb >= 0, 0 <= cssr <= 100, 0 <= service_drop_all <= 100)'
+            });
+        }
+
+        const triggeredAnomalies = [];
+
+        // Kiểm tra Anomaly 1: Chỉ số thiết lập cuộc gọi cssr (%) - Nhóm Vận hành
+        const isAnomaly1 =
+            (trafficVal > 5 && cssrVal < 95) ||
+            (trafficVal >= 1 && trafficVal <= 5 && cssrVal < 95) ||
+            (trafficVal >= 0.1 && trafficVal < 1 && cssrVal < 90) ||
+            (trafficVal < 0.1 && cssrVal < 75);
+        if (isAnomaly1) {
+            triggeredAnomalies.push({ code: 'Anomaly1', kpi: 'cssr', group: 'A1_rule_vh' });
+        }
+
+        // Kiểm tra Anomaly 2: Chỉ số rớt cuộc gọi service_drop_all (%) - Nhóm Vận hành
+        const isAnomaly2 =
+            (trafficVal > 5 && dropVal > 5) ||
+            (trafficVal >= 1 && trafficVal <= 5 && dropVal > 5) ||
+            (trafficVal >= 0.1 && trafficVal < 1 && dropVal > 10) ||
+            (trafficVal < 0.1 && dropVal > 20);
+        if (isAnomaly2) {
+            triggeredAnomalies.push({ code: 'Anomaly2', kpi: 'service_drop_all', group: 'A1_rule_vh' });
+        }
+
+        // Kiểm tra Anomaly 3: Lưu lượng suy giảm bất thường (Traffic down) - Nhóm Vận hành
+        const isAnomaly3 =
+            (trafficVal > 7 && trafficPctVal < 10) ||
+            (trafficVal >= 3 && trafficVal <= 7 && trafficPctVal < 10) ||
+            (trafficVal >= 1 && trafficVal < 3 && trafficPctVal < 5);
+        if (isAnomaly3) {
+            triggeredAnomalies.push({ code: 'Anomaly3', kpi: 'traffic_down', group: 'A1_rule_vh' });
+        }
+
+        // Kiểm tra Anomaly 4: Lưu lượng tăng cao bất thường (Traffic up) - Nhóm Kỹ thuật
+        const isAnomaly4 =
+            (trafficVal > 3 && trafficPctVal > 450) ||
+            (trafficVal >= 0.5 && trafficVal <= 3 && trafficPctVal > 450) ||
+            (trafficVal < 0.5 && trafficPctVal > 1000);
+        if (isAnomaly4) {
+            triggeredAnomalies.push({ code: 'Anomaly4', kpi: 'traffic_up', group: 'A1_rule_kt' });
+        }
+
+        // Kiểm tra Anomaly 5: Thông lượng tải xuống người dùng suy giảm - Nhóm Kỹ thuật
+        const isAnomaly5 =
+            (trafficVal > 10 && thputPctVal < 30) ||
+            (trafficVal >= 5 && trafficVal <= 10 && thputPctVal < 30) ||
+            (trafficVal >= 2 && trafficVal < 5 && thputPctVal < 20) ||
+            (trafficVal >= 1 && trafficVal < 2 && thputPctVal < 10) ||
+            (trafficVal < 1 && thputPctVal < 5);
+        if (isAnomaly5) {
+            triggeredAnomalies.push({ code: 'Anomaly5', kpi: 'user_dl_avg_thput', group: 'A1_rule_kt' });
+        }
+
+        const isAnomaly = triggeredAnomalies.length > 0;
+        const hasVh = triggeredAnomalies.some((a) => a.group === 'A1_rule_vh');
+        const hasKt = triggeredAnomalies.some((a) => a.group === 'A1_rule_kt');
+        const a1RuleGroup = hasVh ? 'A1_rule_vh' : (hasKt ? 'A1_rule_kt' : 'NORMAL');
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Đánh giá quy chuẩn KPI Cell VNPT NET thành công',
+            data: {
+                is_anomaly: isAnomaly,
+                a1_rule_group: a1RuleGroup,
+                severity: isAnomaly ? 'Cell_Critical' : 'Normal',
+                triggered_anomalies: triggeredAnomalies,
+                evaluated_at: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        console.error('[ANALYTICS ERROR evaluateVnptCellRule]:', error.message);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Lỗi xử lý đánh giá quy chuẩn KPI Cell VNPT NET',
+            details: error.message
+        });
+    }
+};
+
+// Xuất các hàm điều khiển để router sử dụng
 module.exports = {
     getNetworkHealth,
     getStationsNearby,
     predictRisk,
-    getTopRiskStations
+    getTopRiskStations,
+    getVnptCellHealth,
+    evaluateVnptCellRule
 };
