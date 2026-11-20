@@ -112,26 +112,25 @@ CREATE INDEX IF NOT EXISTS idx_network_cells_geom ON network_cells USING GIST(ge
 CREATE INDEX IF NOT EXISTS idx_network_cells_province_code ON network_cells (province_code);
 CREATE INDEX IF NOT EXISTS idx_network_cells_a1_group ON network_cells (a1_rule_group);
 
--- 5. Nạp 9 Cell mẫu ẩn danh (3 Trạm x 3 Cell/Trạm) tại 3 tỉnh (CTO, BTE, AGG)
--- Lưu ý: Mã trạm/cell dưới đây là dữ liệu mô phỏng ẩn danh phục vụ kiểm thử đồ án
+-- 5. Nạp 9 Cell mẫu (3 Trạm x 3 Cell/Trạm) tại 3 tỉnh (CTO, BTE, AGG) theo đúng mã mẫu VNPT NET
 INSERT INTO network_cells (
     node_name, cell_name, enodeb_id, cell_id, province, province_code,
     latitude, longitude, cssr, service_drop_all, traffic_gb, traffic_percent_hour,
     user_dl_avg_thput, user_dl_avg_thput_percent_hour, a1_rule_group, a4_flags, is_anomaly
 )
 VALUES
--- Trạm 1 tại Cần Thơ (CTO): 2 Cell lỗi Vận hành (A1_rule_vh), 1 Cell bình thường
-('4G-DEMO01M-CTO', '4G-DEMO01M11-CTO', 620001, 11, 'CAN THO', 'CTO', 10.0341, 105.7875, 91.2, 6.4, 6.2, 85.0, 28.5, 72.0, 'A1_rule_vh', ARRAY['A4_rrcfailure', 'A4_erabrelabnormal'], TRUE),
-('4G-DEMO01M-CTO', '4G-DEMO01M12-CTO', 620001, 12, 'CAN THO', 'CTO', 10.0365, 105.7892, 92.8, 5.8, 5.5, 8.5, 24.0, 65.0, 'A1_rule_vh', ARRAY['A4_s1signallingfailure', 'A4_erabfailure'], TRUE),
-('4G-DEMO01M-CTO', '4G-DEMO01M13-CTO', 620001, 13, 'CAN THO', 'CTO', 10.0318, 105.7848, 99.4, 0.4, 4.8, 104.0, 48.0, 102.0, 'NORMAL', ARRAY[]::TEXT[], FALSE),
+-- Trạm 1 tại Cần Thơ (CTO): 4G-CRA032M-CTO (eNodeB 620251)
+('4G-CRA032M-CTO', '4G-CRA032M11-CTO', 620251, 11, 'CAN THO', 'CTO', 10.0341, 105.7875, 91.2, 6.4, 6.2, 85.0, 28.5, 72.0, 'A1_rule_vh', ARRAY['A4_rrcfailure', 'A4_erabrelabnormal'], TRUE),
+('4G-CRA032M-CTO', '4G-CRA032M12-CTO', 620251, 12, 'CAN THO', 'CTO', 10.0365, 105.7892, 92.8, 5.8, 5.5, 8.5, 24.0, 65.0, 'A1_rule_vh', ARRAY['A4_s1signallingfailure', 'A4_erabfailure'], TRUE),
+('4G-CRA032M-CTO', '4G-CRA032M13-CTO', 620251, 13, 'CAN THO', 'CTO', 10.0318, 105.7848, 99.4, 0.4, 4.8, 104.0, 48.0, 102.0, 'NORMAL', ARRAY[]::TEXT[], FALSE),
 
--- Trạm 2 tại Bến Tre (BTE): 2 Cell lỗi Kỹ thuật (A1_rule_kt), 1 Cell bình thường
-('4G-DEMO02M-BTE', '4G-DEMO02M11-BTE', 650002, 11, 'BEN TRE', 'BTE', 10.2433, 106.3755, 98.1, 1.2, 4.2, 510.0, 18.0, 42.0, 'A1_rule_kt', ARRAY['A4_rrcincrease'], TRUE),
-('4G-DEMO02M-BTE', '4G-DEMO02M12-BTE', 650002, 12, 'BEN TRE', 'BTE', 10.2450, 106.3780, 97.6, 1.8, 11.4, 135.0, 9.5, 24.0, 'A1_rule_kt', ARRAY['A4_hoprepfailure', 'A4_hoexefailure'], TRUE),
-('4G-DEMO02M-BTE', '4G-DEMO02M13-BTE', 650002, 13, 'BEN TRE', 'BTE', 10.2410, 106.3720, 99.6, 0.3, 3.9, 98.5, 52.0, 105.0, 'NORMAL', ARRAY[]::TEXT[], FALSE),
+-- Trạm 2 tại Bến Tre (BTE): 4G-CTH013M-BTE (eNodeB 650052)
+('4G-CTH013M-BTE', '4G-CTH013M11-BTE', 650052, 11, 'BEN TRE', 'BTE', 10.2433, 106.3755, 98.1, 1.2, 4.2, 510.0, 18.0, 42.0, 'A1_rule_kt', ARRAY['A4_rrcincrease'], TRUE),
+('4G-CTH013M-BTE', '4G-CTH013M12-BTE', 650052, 12, 'BEN TRE', 'BTE', 10.2450, 106.3780, 97.6, 1.8, 11.4, 135.0, 9.5, 24.0, 'A1_rule_kt', ARRAY['A4_hoprepfailure', 'A4_hoexefailure'], TRUE),
+('4G-CTH013M-BTE', '4G-CTH013M13-BTE', 650052, 13, 'BEN TRE', 'BTE', 10.2410, 106.3720, 99.6, 0.3, 3.9, 98.5, 52.0, 105.0, 'NORMAL', ARRAY[]::TEXT[], FALSE),
 
--- Trạm 3 tại An Giang (AGG): 1 Cell lỗi Vận hành gần cụm nguy cơ, 2 Cell bình thường
-('4G-DEMO03M-AGG', '4G-DEMO03M11-AGG', 630003, 11, 'AN GIANG', 'AGG', 10.3864, 105.4352, 88.5, 8.2, 2.4, 92.0, 21.0, 60.0, 'A1_rule_vh', ARRAY['A4_erabrelabnormal'], TRUE),
-('4G-DEMO03M-AGG', '4G-DEMO03M12-AGG', 630003, 12, 'AN GIANG', 'AGG', 10.3880, 105.4375, 99.2, 0.6, 3.1, 101.0, 46.5, 99.0, 'NORMAL', ARRAY[]::TEXT[], FALSE),
-('4G-DEMO03M-AGG', '4G-DEMO03M13-AGG', 630003, 13, 'AN GIANG', 'AGG', 10.3845, 105.4328, 99.5, 0.5, 2.8, 97.0, 44.0, 96.0, 'NORMAL', ARRAY[]::TEXT[], FALSE)
+-- Trạm 3 tại An Giang (AGG): 4G-CPH070M-AGG (eNodeB 630724)
+('4G-CPH070M-AGG', '4G-CPH070M11-AGG', 630724, 11, 'AN GIANG', 'AGG', 10.3864, 105.4352, 88.5, 8.2, 2.4, 92.0, 21.0, 60.0, 'A1_rule_vh', ARRAY['A4_erabrelabnormal'], TRUE),
+('4G-CPH070M-AGG', '4G-CPH070M12-AGG', 630724, 12, 'AN GIANG', 'AGG', 10.3880, 105.4375, 99.2, 0.6, 3.1, 101.0, 46.5, 99.0, 'NORMAL', ARRAY[]::TEXT[], FALSE),
+('4G-CPH070M-AGG', '4G-CPH070M13-AGG', 630724, 13, 'AN GIANG', 'AGG', 10.3845, 105.4328, 99.5, 0.5, 2.8, 97.0, 44.0, 96.0, 'NORMAL', ARRAY[]::TEXT[], FALSE)
 ON CONFLICT (cell_name) DO NOTHING;
