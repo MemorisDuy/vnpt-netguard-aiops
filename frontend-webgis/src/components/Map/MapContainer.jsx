@@ -1,23 +1,13 @@
-
- // ==============================================================================
- // COMPONENT: MAP CONTAINER - BẢN ĐỒ GIÁM SÁT MẠNG WEB GIS
- // Đề tài N3.2: Hệ thống dự báo khu vực có nguy cơ suy giảm chất lượng mạng
- // Phụ trách: Võ Ngọc Quý (Web GIS Engineer)
- //
- // CHỨC NĂNG:
- // - Hiển thị bản đồ OpenStreetMap bằng React Leaflet.
- // - Hiển thị các vùng cảnh báo từ HeatmapLayer.
- // - Hiển thị trạm viễn thông và thông số KPI.
- // - Tự động di chuyển bản đồ khi chọn trạm từ Sidebar.
- // - Hỗ trợ MOCK để phát triển Frontend, API để tích hợp Backend sau này.
- // ==============================================================================
+// ==============================================================================
+// COMPONENT: MAP CONTAINER - BẢN ĐỒ GIÁM SÁT MẠNG WEB GIS CHUYÊN NGHIỆP
+// Đề tài N3.2: Hệ thống dự báo khu vực có nguy cơ suy giảm chất lượng mạng
+// Phụ trách: Võ Ngọc Quý (Web GIS Engineer)
+// ==============================================================================
 
 import { useEffect, useState } from "react";
-
 import {
   MapContainer as LeafletMap,
   TileLayer,
-  Marker,
   Popup,
   ZoomControl,
   CircleMarker,
@@ -27,196 +17,153 @@ import {
 import "leaflet/dist/leaflet.css";
 import "./MapContainer.css";
 
-// Import lớp hiển thị vùng cảnh báo nguy cơ suy giảm mạng
 import HeatmapLayer from "./HeatmapLayer";
+import { RISK_COLOR_MAP, RISK_LABEL_VN_MAP } from "../../services/api";
 
-// Import dữ liệu giả lập dùng chung với Sidebar
-import { mockStations } from "../../data/mockStations";
+// Tâm mặc định khu vực miền Nam (bao quát TP.HCM, Bến Tre, Cần Thơ, An Giang)
+const DEFAULT_CENTER = [10.42, 106.08];
+const DEFAULT_ZOOM = 9;
 
-// Import API do Ngọc Lân phát triển để phục vụ tích hợp Backend
-import {
-  getSpatialMapData,
-  RISK_COLOR_MAP,
-  RISK_LABEL_VN_MAP,
-} from "../../services/api";
-
-// Chọn nguồn dữ liệu cho bản đồ: MOCK hoặc API
-// Khi Backend sẵn sàng, chuyển thành "API"
-const DATA_MODE = "API";
-
-// Trung tâm bản đồ mặc định tại TP. Hồ Chí Minh
-const HCM_POSITION = [10.8231, 106.6297];
-
-// ==============================================================================
-// 1. COMPONENT ĐIỀU KHIỂN VỊ TRÍ BẢN ĐỒ
-// Bổ sung: Võ Ngọc Quý - Web GIS Engineer
-// ==============================================================================
-
-function MapFlyToStation({ selectedStation }) {
-  // Lấy đối tượng bản đồ Leaflet đang hoạt động
+// 1. Component điều khiển di chuyển tâm bản đồ khi chọn trạm hoặc chuyển nhanh khu vực
+function MapViewportController({ selectedStation, mapFocus }) {
   const map = useMap();
 
   useEffect(() => {
-    // Không di chuyển nếu chưa chọn trạm từ Sidebar
     if (!selectedStation) return;
 
-    // Lấy tọa độ trạm được chọn
-    const latitude = Number(selectedStation.latitude);
-    const longitude = Number(selectedStation.longitude);
+    const lat = Number(selectedStation.latitude);
+    const lng = Number(selectedStation.longitude);
 
-    // Kiểm tra tọa độ hợp lệ trước khi điều khiển bản đồ
     if (
-      !Number.isFinite(latitude) ||
-      !Number.isFinite(longitude) ||
-      latitude < -90 ||
-      latitude > 90 ||
-      longitude < -180 ||
-      longitude > 180
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lng) ||
+      lat < -90 ||
+      lat > 90 ||
+      lng < -180 ||
+      lng > 180
     ) {
-      console.warn("Tọa độ trạm không hợp lệ:", selectedStation);
       return;
     }
 
-    // Di chuyển và phóng to bản đồ đến vị trí trạm
-    map.flyTo([latitude, longitude], 15, {
+    map.flyTo([lat, lng], 15, {
       animate: true,
-      duration: 1.5,
+      duration: 1.2,
     });
   }, [map, selectedStation]);
 
-  // Component chỉ xử lý điều khiển bản đồ
+  useEffect(() => {
+    if (!mapFocus || !Array.isArray(mapFocus.center)) return;
+    map.flyTo(mapFocus.center, mapFocus.zoom || 11, {
+      animate: true,
+      duration: 1.1,
+    });
+  }, [map, mapFocus]);
+
   return null;
 }
 
-// ==============================================================================
-// 2. HÀM HIỂN THỊ THÔNG SỐ KPI
-// ==============================================================================
-
-function showKPI(value, unit = "") {
-  // Hiển thị thông báo khi trạm chưa có dữ liệu KPI
+// 2. Hàm định dạng hiển thị chỉ số KPI an toàn
+function formatKPI(value, unit = "") {
   if (value === undefined || value === null || value === "") {
-    return "Chưa có dữ liệu";
+    return "Chưa có";
   }
-
   return `${value}${unit}`;
 }
 
-// ==============================================================================
-// 3. COMPONENT CHÍNH HIỂN THỊ BẢN ĐỒ WEB GIS
-// ==============================================================================
+function getRuleGroupLabel(group) {
+  if (group === "A1_rule_vh") return "Vận hành (A1_rule_vh)";
+  if (group === "A1_rule_kt") return "Kỹ thuật (A1_rule_kt)";
+  if (group === "INSUFFICIENT_DATA") return "Thiếu lịch sử";
+  return "Ổn định (NORMAL)";
+}
 
-function MapContainer({ selectedStation }) {
-  // Lưu danh sách trạm đang hiển thị trên bản đồ
-  const [stations, setStations] = useState(
-    DATA_MODE === "MOCK" ? mockStations : []
-  );
-
-  // Lưu trạng thái tải dữ liệu và lỗi kết nối
-  const [loading, setLoading] = useState(DATA_MODE === "API");
-  const [error, setError] = useState("");
-
-  // Tải dữ liệu trạm theo chế độ MOCK hoặc API
-  useEffect(() => {
-    // Chế độ MOCK sử dụng dữ liệu giả lập từ file dùng chung
-    if (DATA_MODE === "MOCK") {
-      setStations(mockStations);
-      return;
-    }
-
-    // Chế độ API gọi Backend do Ngọc Lân phát triển
-    let cancelled = false;
-
-    async function loadMapData() {
-      try {
-        setLoading(true);
-        setError("");
-
-        // Gọi API lấy dữ liệu không gian của các trạm
-        const data = await getSpatialMapData();
-
-        if (!cancelled) {
-          // Cập nhật danh sách trạm từ Backend
-          setStations(data.stations || []);
-        }
-      } catch (err) {
-        console.error("Lỗi tải dữ liệu Web GIS:", err);
-
-        if (!cancelled) {
-          // Thông báo lỗi khi Backend chưa sẵn sàng
-          setError("Chưa kết nối được Backend tại cổng 5000.");
-        }
-      } finally {
-        if (!cancelled) {
-          // Kết thúc trạng thái tải dữ liệu
-          setLoading(false);
-        }
-      }
-    }
-
-    loadMapData();
-
-    // Ngăn cập nhật state khi component đã bị hủy
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+// 3. Component Bản đồ Web GIS chính
+function MapContainer({
+  stations = [],
+  selectedStation = null,
+  onSelectStation,
+  dataSource = "MOCK",
+  loading = false,
+  onRetryApi,
+  mapFocus = null,
+}) {
+  const [showHeatmap, setShowHeatmap] = useState(true);
 
   return (
     <div className="map-wrapper">
-      {/* Hiển thị trạng thái tải dữ liệu từ Backend */}
-      {loading && (
-        <p style={{ color: "#2563eb" }}>
-          Đang tải dữ liệu trạm viễn thông...
-        </p>
-      )}
+      {/* Thanh trạng thái nổi góc trên bên trái bản đồ */}
+      <div className="map-overlay-top">
+        <div className={`source-pill ${dataSource === "API" ? "pill-live" : "pill-fallback"}`}>
+          <span className="status-dot" />
+          {loading
+            ? "Đang đồng bộ Backend API..."
+            : dataSource === "API"
+            ? "Trực tuyến: Backend API (Port 5000)"
+            : "Chế độ Dự phòng: Dữ liệu mẫu VNPT NET"}
+        </div>
 
-      {/* Hiển thị lỗi kết nối khi đang ở chế độ API */}
-      {error && (
-        <p style={{ color: "#dc2626" }}>
-         {error} Bản đồ nền vẫn hoạt động bình thường.
-        </p>
+        <div className="map-overlay-actions">
+          <button
+            type="button"
+            className={`map-ctrl-btn ${showHeatmap ? "active" : ""}`}
+            onClick={() => setShowHeatmap((prev) => !prev)}
+          >
+            {showHeatmap ? "Ẩn vùng nhiệt" : "Hiện vùng nhiệt"}
+          </button>
+
+          {dataSource !== "API" && onRetryApi && (
+            <button type="button" className="map-ctrl-btn retry-btn" onClick={onRetryApi}>
+              Thử kết nối API
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Thẻ tóm tắt trạm đang chọn nổi góc trên bên phải */}
+      {selectedStation && (
+        <div className="map-selected-banner">
+          <div className="selected-banner-label">ĐANG GIÁM SÁT</div>
+          <div className="selected-banner-title">
+            {selectedStation.station_name || selectedStation.cell_name}
+          </div>
+          <div className="selected-banner-coords">
+            Mã: {selectedStation.cell_name || selectedStation.station_code} | Tọa độ:{" "}
+            {Number(selectedStation.latitude).toFixed(4)},{" "}
+            {Number(selectedStation.longitude).toFixed(4)}
+          </div>
+        </div>
       )}
 
       {/* Khung bản đồ Leaflet */}
       <LeafletMap
-        center={HCM_POSITION}
-        zoom={12}
+        center={DEFAULT_CENTER}
+        zoom={DEFAULT_ZOOM}
         zoomControl={false}
         scrollWheelZoom={true}
         className="network-map"
       >
-        {/* Hiển thị bản đồ nền OpenStreetMap */}
         <TileLayer
           attribution="&copy; OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* Nút điều khiển phóng to và thu nhỏ bản đồ */}
         <ZoomControl position="bottomright" />
 
-        {/* Di chuyển bản đồ khi người dùng chọn trạm từ Sidebar */}
-        <MapFlyToStation selectedStation={selectedStation} />
+        <MapViewportController selectedStation={selectedStation} mapFocus={mapFocus} />
 
-        {/* Giữ lớp cảnh báo nguy cơ suy giảm mạng hiện tại */}
-        <HeatmapLayer />
+        <HeatmapLayer stations={stations} visible={showHeatmap} />
 
-        {/* Hiển thị các trạm viễn thông trên bản đồ */}
+        {/* Render từng điểm trạm / cell lên bản đồ */}
         {stations.map((station, index) => {
-          // Chuẩn hóa mức độ rủi ro của trạm
-          const riskKey = String(
-            station.risk_level || "LOW"
-          ).toUpperCase();
-
-          // Lấy màu hiển thị tương ứng với mức độ rủi ro
+          const riskKey = String(station.risk_level || "LOW").toUpperCase();
           const riskColor =
             RISK_COLOR_MAP[riskKey] ||
             (riskKey === "HIGH"
               ? "#ef4444"
               : riskKey === "MEDIUM"
-              ? "#eab308"
+              ? "#f59e0b"
               : "#22c55e");
 
-          // Chuyển mức độ rủi ro sang nhãn tiếng Việt
           const riskLabel =
             RISK_LABEL_VN_MAP[riskKey] ||
             (riskKey === "HIGH"
@@ -225,101 +172,132 @@ function MapContainer({ selectedStation }) {
               ? "Cảnh báo"
               : "An toàn");
 
-          // Lấy tọa độ từ dữ liệu MOCK hoặc API
-          const position = Array.isArray(station.position)
-            ? station.position
-            : [
-                Number(station.latitude),
-                Number(station.longitude),
-              ];
+          const lat = Number(station.latitude);
+          const lng = Number(station.longitude);
 
-          // Bỏ qua các trạm có tọa độ không hợp lệ
-          if (
-            position.length !== 2 ||
-            !Number.isFinite(Number(position[0])) ||
-            !Number.isFinite(Number(position[1]))
-          ) {
+          if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
             return null;
           }
 
+          const isSelected =
+            selectedStation &&
+            (selectedStation.id === station.id ||
+              selectedStation.station_code === station.station_code);
+
           return (
             <CircleMarker
-              key={station.id ?? index}
-              center={position}
-              radius={8}
+              key={station.id ?? station.station_code ?? index}
+              center={[lat, lng]}
+              radius={isSelected ? 12 : 8}
               pathOptions={{
-                color: "#ffffff",
-                weight: 2,
+                color: isSelected ? "#0f172a" : "#ffffff",
+                weight: isSelected ? 3 : 2,
                 fillColor: riskColor,
-                fillOpacity: 1,
+                fillOpacity: 0.95,
+              }}
+              eventHandlers={{
+                click: () => {
+                  if (onSelectStation) {
+                    onSelectStation(station);
+                  }
+                },
               }}
             >
-              {/* Popup hiển thị thông tin chi tiết của trạm */}
               <Popup>
-                <div style={{ minWidth: "230px" }}>
-                  <h3 style={{ margin: "0 0 10px" }}>
-                    {station.station_name ||
-                      station.name ||
-                      "Trạm viễn thông"}
-                  </h3>
-
-                  <p>
-                    <strong>Mã trạm:</strong>{" "}
-                    {station.station_code || "Chưa có dữ liệu"}
-                  </p>
-
-                  <p>
-                    <strong>Độ trễ:</strong>{" "}
-                    {showKPI(station.latency_ms, " ms")}
-                  </p>
-
-                  <p>
-                    <strong>Tỷ lệ mất gói:</strong>{" "}
-                    {showKPI(station.packet_loss_rate, "%")}
-                  </p>
-
-                  <p>
-                    <strong>Jitter:</strong>{" "}
-                    {showKPI(station.jitter_ms, " ms")}
-                  </p>
-
-                  <p>
-                    <strong>Băng thông:</strong>{" "}
-                    {showKPI(station.throughput_mbps, " Mbps")}
-                  </p>
-
-                  <p>
-                    <strong>Mức độ rủi ro:</strong>{" "}
+                <div className="gis-popup">
+                  <div className="gis-popup-header">
+                    <span className="gis-popup-code">
+                      {station.cell_name || station.station_code || "CELL"}
+                    </span>
                     <span
-                      style={{
-                        color: riskColor,
-                        fontWeight: "bold",
-                      }}
+                      className="gis-popup-badge"
+                      style={{ backgroundColor: riskColor }}
                     >
                       {riskLabel}
                     </span>
-                  </p>
+                  </div>
 
-                  <p>
-                    <strong>Điểm rủi ro:</strong>{" "}
-                    {showKPI(station.risk_score, "/100")}
-                  </p>
+                  <h3 className="gis-popup-title">
+                    {station.station_name || station.name || "Trạm viễn thông"}
+                  </h3>
 
-                  <p>
-                    <strong>Nguồn dữ liệu:</strong>{" "}
-                    {DATA_MODE === "MOCK"
-                      ? "Mô phỏng Frontend"
-                      : "Backend API"}
-                  </p>
+                  {station.node_name && (
+                    <div className="gis-popup-sub">
+                      Trạm eNodeB: <strong>{station.node_name}</strong>
+                      {station.province_code ? ` (${station.province_code})` : ""}
+                    </div>
+                  )}
+
+                  <div className="gis-popup-grid">
+                    <div className="gis-kpi-cell">
+                      <span>CSSR</span>
+                      <strong>{formatKPI(station.cssr, "%")}</strong>
+                    </div>
+                    <div className="gis-kpi-cell">
+                      <span>Rớt cuộc gọi</span>
+                      <strong>{formatKPI(station.service_drop_all ?? station.packet_loss_rate, "%")}</strong>
+                    </div>
+                    <div className="gis-kpi-cell">
+                      <span>Lưu lượng</span>
+                      <strong>{formatKPI(station.traffic_gb, " GB")}</strong>
+                    </div>
+                    <div className="gis-kpi-cell">
+                      <span>Thông lượng</span>
+                      <strong>{formatKPI(station.user_dl_avg_thput ?? station.throughput_mbps, " Mbps")}</strong>
+                    </div>
+                    <div className="gis-kpi-cell">
+                      <span>Độ trễ</span>
+                      <strong>{formatKPI(station.latency_ms, " ms")}</strong>
+                    </div>
+                    <div className="gis-kpi-cell">
+                      <span>Điểm AI</span>
+                      <strong>{formatKPI(station.risk_score, "/100")}</strong>
+                    </div>
+                  </div>
+
+                  {station.a1_rule_group && (
+                    <div className="gis-popup-rule">
+                      Nhóm cảnh báo: <strong>{getRuleGroupLabel(station.a1_rule_group)}</strong>
+                    </div>
+                  )}
+
+                  {Array.isArray(station.a4_flags) && station.a4_flags.length > 0 && (
+                    <div className="gis-popup-flags">
+                      <div className="flags-label">Nguyên nhân gốc Tầng 2 (A4):</div>
+                      <div className="flags-list">
+                        {station.a4_flags.map((flag) => (
+                          <span key={flag} className="flag-tag">
+                            {flag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Popup>
             </CircleMarker>
           );
         })}
       </LeafletMap>
+
+      {/* Bảng chú giải màu sắc chuẩn NOC góc dưới bên trái */}
+      <div className="map-legend">
+        <div className="legend-title">CHÚ GIẢI RỦI RO VNPT NET</div>
+        <div className="legend-item">
+          <span className="legend-dot dot-high" />
+          <span>Nguy cơ cao / Vận hành (A1_rule_vh)</span>
+        </div>
+        <div className="legend-item">
+          <span className="legend-dot dot-medium" />
+          <span>Cảnh báo / Kỹ thuật (A1_rule_kt)</span>
+        </div>
+        <div className="legend-item">
+          <span className="legend-dot dot-low" />
+          <span>Hoạt động ổn định (NORMAL)</span>
+        </div>
+      </div>
     </div>
   );
 }
 
-// Xuất component để App.jsx sử dụng
 export default MapContainer;
