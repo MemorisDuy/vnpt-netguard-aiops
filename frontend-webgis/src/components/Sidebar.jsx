@@ -1,185 +1,199 @@
 // ==============================================================================
-// COMPONENT: THANH ĐIỀU KHIỂN BÊN TRÁI (SIDEBAR DANH SÁCH TRẠM & BỘ LỌC RỦI RO)
+// COMPONENT: THANH ĐIỀU KHIỂN SIDEBAR DANH SÁCH TRẠM / CELL & BỘ LỌC RỦI RO
 // Đề tài N3.2: Hệ thống dự báo khu vực có nguy cơ suy giảm chất lượng mạng
-// Phụ trách: Minh Trường (Full-stack & UI Dashboard)
+// Phụ trách: Minh Trường (UI Dashboard) & Võ Ngọc Quý (Web GIS Engineer)
 // ==============================================================================
 
-import { useState, useEffect } from 'react';
-import './Sidebar.css';
+import "./Sidebar.css";
 
-// Component Sidebar nhận prop onSelectStation từ App.jsx để truyền trạm được chọn sang bản đồ
-const Sidebar = ({ onSelectStation }) => {
-    // 1. Khai báo các State lưu trữ dữ liệu và bộ lọc trên giao diện
-    const [stations, setStations] = useState([]);                 // Danh sách trạm lấy từ API
-    const [selectedRisk, setSelectedRisk] = useState('ALL');      // Bộ lọc: 'ALL' | 'HIGH' | 'MEDIUM' | 'LOW'
-    const [searchTerm, setSearchTerm] = useState('');             // Từ khóa tìm kiếm tên hoặc mã trạm
-    const [activeStationId, setActiveStationId] = useState(null); // ID trạm đang được người dùng click chọn
-    const [loading, setLoading] = useState(true);                 // Trạng thái chờ tải dữ liệu API
-    const [error, setError] = useState(null);                     // Thông báo lỗi nếu mất kết nối Backend
+const PROVINCE_OPTIONS = [
+  { code: "ALL", label: "Tất cả tỉnh" },
+  { code: "CTO", label: "Cần Thơ" },
+  { code: "BTE", label: "Bến Tre" },
+  { code: "AGG", label: "An Giang" },
+  { code: "HCM", label: "TP.HCM" },
+];
 
-    // 2. Gọi API GET /api/stations mỗi khi đổi nút lọc (selectedRisk) hoặc gõ tìm kiếm (searchTerm)
-    useEffect(() => {
-        const fetchStations = async () => {
-            try {
-                setLoading(true);
+const Sidebar = ({
+  stations = [],
+  totalCount = 0,
+  selectedRisk = "ALL",
+  onRiskChange,
+  selectedProvince = "ALL",
+  onProvinceChange,
+  searchTerm = "",
+  onSearchChange,
+  selectedStation = null,
+  onSelectStation,
+  loading = false,
+  dataSource = "MOCK",
+}) => {
+  const getRiskLabel = (riskLevel) => {
+    const key = String(riskLevel || "LOW").toUpperCase();
+    if (key === "HIGH") return "Nguy cơ cao";
+    if (key === "MEDIUM") return "Cảnh báo";
+    return "An toàn";
+  };
 
-                // Tạo bộ tham số truy vấn (Query Parameters) gửi lên Backend
-                const params = new URLSearchParams();
-                if (selectedRisk !== 'ALL') {
-                    params.append('risk_level', selectedRisk);
-                }
-                if (searchTerm.trim() !== '') {
-                    params.append('search', searchTerm.trim());
-                }
+  const getRuleTag = (group) => {
+    if (group === "A1_rule_vh") return "Vận hành";
+    if (group === "A1_rule_kt") return "Kỹ thuật";
+    if (group === "INSUFFICIENT_DATA") return "Thiếu dữ liệu";
+    return "Ổn định";
+  };
 
-                // Gọi API lấy danh sách trạm theo điều kiện lọc
-                const response = await fetch(`http://localhost:5000/api/stations?${params.toString()}`);
-                const result = await response.json();
+  return (
+    <aside className="sidebar-container">
+      {/* 1. Tiêu đề thương hiệu NOC */}
+      <div className="sidebar-header">
+        <div className="sidebar-brand-row">
+          <span className="sidebar-brand-badge">VNPT</span>
+          <div>
+            <h2 className="sidebar-title">VNPT NetGuard</h2>
+            <p className="sidebar-subtitle">Giám sát 1 Trạm - 3 Cell &amp; BTS</p>
+          </div>
+        </div>
+        <div className="sidebar-counter-row">
+          <span>
+            Hiển thị <strong>{stations.length}</strong> / {totalCount} điểm đo
+          </span>
+          <span className={`mini-source ${dataSource === "API" ? "live" : "mock"}`}>
+            {dataSource === "API" ? "API Live" : "Mẫu VNPT"}
+          </span>
+        </div>
+      </div>
 
-                if (result.status === 'success') {
-                    setStations(result.data);
-                    setError(null);
-                } else {
-                    setError('Không thể lấy dữ liệu trạm phát sóng');
-                }
-            } catch (err) {
-                console.error('[SIDEBAR ERROR]:', err);
-                setError('Mất kết nối tới máy chủ Backend (Port 5000)');
-            } finally {
-                setLoading(false);
-            }
-        };
+      {/* 2. Ô tìm kiếm theo tên trạm, mã cell hoặc mã tỉnh */}
+      <div className="sidebar-search-wrap">
+        <input
+          type="text"
+          className="sidebar-search-input"
+          placeholder="Tìm mã Cell, tên Trạm (VD: CRA032M, BTE)..."
+          value={searchTerm}
+          onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
+        />
+      </div>
 
-        fetchStations();
-    }, [selectedRisk, searchTerm]);
+      {/* 3. Bộ lọc nhanh theo tỉnh */}
+      <div className="sidebar-province-bar">
+        {PROVINCE_OPTIONS.map((prov) => (
+          <button
+            key={prov.code}
+            type="button"
+            className={`prov-btn ${selectedProvince === prov.code ? "active" : ""}`}
+            onClick={() => onProvinceChange && onProvinceChange(prov.code)}
+          >
+            {prov.label}
+          </button>
+        ))}
+      </div>
 
-    // 3. Hàm đổi nhãn mức độ rủi ro tiếng Anh sang tiếng Việt hiển thị trên Badge
-    const getRiskLabel = (riskLevel) => {
-        switch (riskLevel) {
-            case 'HIGH':
-                return 'Nguy cơ cao';
-            case 'MEDIUM':
-                return 'Cảnh báo';
-            case 'LOW':
-                return 'An toàn';
-            default:
-                return riskLevel;
-        }
-    };
+      {/* 4. Thanh lọc theo mức độ rủi ro */}
+      <div className="sidebar-filter">
+        <button
+          type="button"
+          className={`filter-btn ${selectedRisk === "ALL" ? "active" : ""}`}
+          onClick={() => onRiskChange && onRiskChange("ALL")}
+        >
+          Tất cả
+        </button>
+        <button
+          type="button"
+          className={`filter-btn filter-high ${selectedRisk === "HIGH" ? "active" : ""}`}
+          onClick={() => onRiskChange && onRiskChange("HIGH")}
+        >
+          Cao
+        </button>
+        <button
+          type="button"
+          className={`filter-btn filter-medium ${selectedRisk === "MEDIUM" ? "active" : ""}`}
+          onClick={() => onRiskChange && onRiskChange("MEDIUM")}
+        >
+          Cảnh báo
+        </button>
+        <button
+          type="button"
+          className={`filter-btn filter-low ${selectedRisk === "LOW" ? "active" : ""}`}
+          onClick={() => onRiskChange && onRiskChange("LOW")}
+        >
+          An toàn
+        </button>
+      </div>
 
-    // 4. Xử lý khi người dùng click vào 1 thẻ trạm trong danh sách
-    const handleStationClick = (station) => {
-        // Đánh dấu trạm đang được chọn để tô sáng viền thẻ
-        setActiveStationId(station.id);
+      {/* 5. Danh sách thẻ trạm / cell */}
+      <div className="station-list">
+        {loading && <p className="sidebar-status">Đang đồng bộ danh sách trạm...</p>}
 
-        // Truyền dữ liệu trạm (kèm tọa độ latitude, longitude) sang App.jsx để bản đồ flyTo tới
-        if (onSelectStation) {
-            onSelectStation(station);
-        }
-    };
+        {!loading && stations.length === 0 && (
+          <p className="sidebar-status">Không tìm thấy trạm/cell khớp bộ lọc hiện tại.</p>
+        )}
 
-    return (
-        <aside className="sidebar-container">
-            {/* 1. Phần tiêu đề của Sidebar */}
-            <div className="sidebar-header">
-                <h2 className="sidebar-title">VNPT NetGuard</h2>
-                <p className="sidebar-subtitle">Giám sát trạm phát sóng BTS</p>
-            </div>
+        {!loading &&
+          stations.map((station) => {
+            const riskKey = String(station.risk_level || "LOW").toLowerCase();
+            const isSelected =
+              selectedStation &&
+              (selectedStation.id === station.id ||
+                selectedStation.station_code === station.station_code);
 
-            {/* 2. Ô nhập từ khóa tìm kiếm theo tên trạm hoặc mã trạm */}
-            <div style={{ padding: '12px 16px 0 16px' }}>
-                <input
-                    type="text"
-                    placeholder="Tìm tên hoặc mã trạm (VD: BTS_003)..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        border: '1px solid #334155',
-                        backgroundColor: '#1e293b',
-                        color: '#f8fafc',
-                        fontSize: '0.85rem',
-                        outline: 'none'
-                    }}
-                />
-            </div>
+            return (
+              <div
+                key={station.id ?? station.station_code}
+                className={`station-card ${isSelected ? "selected" : ""}`}
+                onClick={() => onSelectStation && onSelectStation(station)}
+              >
+                <div className="station-card-top">
+                  <span className="station-code">
+                    {station.cell_name || station.station_code}
+                  </span>
+                  <span className={`risk-badge risk-${riskKey}`}>
+                    {getRiskLabel(station.risk_level)}
+                  </span>
+                </div>
 
-            {/* 3. Thanh nút bấm lọc theo mức độ rủi ro */}
-            <div className="sidebar-filter">
-                <button
-                    className={`filter-btn ${selectedRisk === 'ALL' ? 'active' : ''}`}
-                    onClick={() => setSelectedRisk('ALL')}
-                >
-                    Tất cả
-                </button>
-                <button
-                    className={`filter-btn filter-high ${selectedRisk === 'HIGH' ? 'active' : ''}`}
-                    onClick={() => setSelectedRisk('HIGH')}
-                >
-                    Cao
-                </button>
-                <button
-                    className={`filter-btn filter-medium ${selectedRisk === 'MEDIUM' ? 'active' : ''}`}
-                    onClick={() => setSelectedRisk('MEDIUM')}
-                >
-                    Cảnh báo
-                </button>
-                <button
-                    className={`filter-btn filter-low ${selectedRisk === 'LOW' ? 'active' : ''}`}
-                    onClick={() => setSelectedRisk('LOW')}
-                >
-                    An toàn
-                </button>
-            </div>
+                <h3 className="station-name">{station.station_name}</h3>
 
-            {/* 4. Danh sách các thẻ trạm phát sóng (Station Cards) */}
-            <div className="station-list">
-                {loading && <p className="sidebar-status">Đang tải danh sách trạm...</p>}
-                {error && <p className="sidebar-status error">{error}</p>}
-
-                {!loading && !error && stations.length === 0 && (
-                    <p className="sidebar-status">Không tìm thấy trạm phát sóng phù hợp.</p>
+                {(station.province_code || station.a1_rule_group) && (
+                  <div className="station-meta-row">
+                    {station.province_code && (
+                      <span className="meta-pill">{station.province_code}</span>
+                    )}
+                    {station.a1_rule_group && (
+                      <span className={`meta-pill rule-${station.a1_rule_group}`}>
+                        {getRuleTag(station.a1_rule_group)}
+                      </span>
+                    )}
+                  </div>
                 )}
 
-                {!loading && !error && stations.map((station) => (
-                    <div
-                        key={station.id}
-                        className={`station-card ${activeStationId === station.id ? 'selected' : ''}`}
-                        onClick={() => handleStationClick(station)}
-                    >
-                        {/* Dòng trên: Mã trạm + Badge màu theo mức độ rủi ro */}
-                        <div className="station-card-top">
-                            <span className="station-code">{station.station_code}</span>
-                            <span className={`risk-badge risk-${station.risk_level.toLowerCase()}`}>
-                                {getRiskLabel(station.risk_level)}
-                            </span>
-                        </div>
-
-                        {/* Tên vị trí đặt trạm */}
-                        <h3 className="station-name">{station.station_name}</h3>
-
-                        {/* Dòng dưới: Hiển thị 3 chỉ số KPI mạng quan trọng */}
-                        <div className="station-metrics">
-                            <div className="metric-item">
-                                <span className="metric-label">Độ trễ</span>
-                                <span className="metric-value">{station.latency_ms} ms</span>
-                            </div>
-                            <div className="metric-item">
-                                <span className="metric-label">Mất gói</span>
-                                <span className="metric-value">{station.packet_loss_rate}%</span>
-                            </div>
-                            <div className="metric-item">
-                                <span className="metric-label">Băng thông</span>
-                                <span className="metric-value">{station.throughput_mbps} Mbps</span>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </aside>
-    );
+                <div className="station-metrics">
+                  <div className="metric-item">
+                    <span className="metric-label">CSSR / Trễ</span>
+                    <span className="metric-value">
+                      {station.cssr !== undefined
+                        ? `${station.cssr}%`
+                        : `${station.latency_ms} ms`}
+                    </span>
+                  </div>
+                  <div className="metric-item">
+                    <span className="metric-label">Drop / Mất gói</span>
+                    <span className="metric-value">
+                      {station.service_drop_all ?? station.packet_loss_rate}%
+                    </span>
+                  </div>
+                  <div className="metric-item">
+                    <span className="metric-label">Thông lượng</span>
+                    <span className="metric-value">
+                      {station.user_dl_avg_thput ?? station.throughput_mbps} Mbps
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+      </div>
+    </aside>
+  );
 };
 
 export default Sidebar;

@@ -1,10 +1,14 @@
+/* ==============================================================================
+ * STYLESHEET: GIAO DIỆN TRUNG TÂM ĐIỀU HÀNH VNPT NETGUARD AIOPS (App.css)
+ * Phụ trách: Võ Ngọc Quý (Web GIS Engineer) & Minh Trường (UI Dashboard)
+ * ============================================================================== */
 
 .app {
   min-height: 100vh;
-  background: #0f172a;
+  background: #0b1220;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Bố cục đồng bộ 2 cột: Sidebar bên trái + Nội dung Bản đồ bên phải */
 .app-layout {
   display: flex;
   width: 100%;
@@ -14,6 +18,7 @@
 
 .app-content {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -21,40 +26,182 @@
   background: #f1f5f9;
 }
 
+/* Header tông xanh dương VNPT chuyên nghiệp */
 .app-header {
-  background: #0755a3;
-  color: white;
-  padding: 16px 28px;
-  border-bottom: 1px solid #064482;
+  background: linear-gradient(125deg, #0b2545 0%, #0755a3 60%, #0284c7 100%);
+  color: #ffffff;
+  padding: 14px 24px 16px;
+  border-bottom: 1px solid #063d73;
+  box-shadow: 0 4px 16px rgba(7, 85, 163, 0.22);
+}
+
+.header-top-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .app-header h1 {
-  margin: 0 0 6px;
-  font-size: 24px;
+  margin: 0 0 3px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
 }
 
 .app-header p {
   margin: 0;
-  font-size: 14px;
-  opacity: 0.92;
+  font-size: 13px;
+  color: rgba(241, 245, 249, 0.88);
 }
 
+.header-mode-switch {
+  display: inline-flex;
+  background: rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.mode-btn {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mode-btn.active {
+  background: #ffffff;
+  color: #0755a3;
+}
+
+/* 4 thẻ KPI tổng quan trên Header */
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.kpi-card {
+  background: rgba(15, 23, 42, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  padding: 9px 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(6px);
+}
+
+.kpi-card-label {
+  font-size: 12px;
+  color: rgba(241, 245, 249, 0.9);
+  font-weight: 600;
+}
+
+.kpi-card-value {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.kpi-total .kpi-card-value {
+  color: #38bdf8;
+}
+
+.kpi-high .kpi-card-value {
+  color: #fca5a5;
+}
+
+.kpi-medium .kpi-card-value {
+  color: #fcd34d;
+}
+
+.kpi-low .kpi-card-value {
+  color: #86efac;
+}
+
+/* Khu vực bản đồ chính */
 .app-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 20px 28px;
+  padding: 14px 22px 18px;
   overflow: hidden;
+  gap: 10px;
+}
+
+.map-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .app-main h2 {
-  color: #1e293b;
-  margin: 0 0 14px;
-  font-size: 18px;
+  color: #0f172a;
+  margin: 0;
+  font-size: 16.5px;
+  font-weight: 700;
+}
+
+.region-jumps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.region-btn {
+  padding: 5px 11px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.region-btn:hover {
+  border-color: #0284c7;
+  color: #0284c7;
+}
+
+.region-btn.active {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
 }
 
 .app-main .map-wrapper {
   flex: 1;
   height: 100%;
   min-height: 0;
+}
+
+@media (max-width: 960px) {
+  .app-layout {
+    flex-direction: column;
+    height: auto;
+    overflow: auto;
+  }
+  .app-content {
+    height: auto;
+    overflow: visible;
+  }
+  .kpi-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .app-main .map-wrapper {
+    min-height: 480px;
+  }
 }

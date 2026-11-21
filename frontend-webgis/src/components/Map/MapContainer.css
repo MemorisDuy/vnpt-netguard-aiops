@@ -1,22 +1,295 @@
 /* ==============================================================================
-   ĐỊNH DẠNG CSS: BỐ CỤC KHUNG BẢN ĐỒ (MAP CONTAINER)
+   ĐỊNH DẠNG CSS: KHUNG BẢN ĐỒ WEB GIS & LỚP ĐIỀU KHIỂN NỔI (MAP CONTAINER)
    Phụ trách: Võ Ngọc Quý (Web GIS Engineer)
    ============================================================================== */
 
-/* Khung bao bọc ngoài cùng của bản đồ: bo tròn góc 12px và thiết lập chiều cao tối thiểu */
 .map-wrapper {
+  position: relative;
   width: 100%;
   height: 100%;
-  min-height: 500px;
-  border-radius: 12px;
+  min-height: 460px;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  background: #e2e8f0;
 }
 
-/* Thẻ bản đồ Leaflet: chiếm 100% không gian khung và thiết lập z-index để không đè header */
 .network-map {
   width: 100%;
   height: 100%;
-  min-height: 500px;
+  min-height: 460px;
   z-index: 1;
+}
+
+/* Thanh trạng thái & nút điều khiển nổi góc trên trái */
+.map-overlay-top {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 500;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.source-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 700;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);
+}
+
+.source-pill.pill-live {
+  background: rgba(15, 23, 42, 0.88);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.45);
+}
+
+.source-pill.pill-fallback {
+  background: rgba(15, 23, 42, 0.88);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+}
+
+.map-overlay-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.map-ctrl-btn {
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  background: rgba(255, 255, 255, 0.94);
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+  transition: all 0.15s ease;
+}
+
+.map-ctrl-btn:hover {
+  background: #ffffff;
+  border-color: #0284c7;
+  color: #0284c7;
+}
+
+.map-ctrl-btn.active {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+}
+
+.map-ctrl-btn.retry-btn {
+  background: #0f172a;
+  color: #38bdf8;
+  border-color: #334155;
+}
+
+.map-ctrl-btn.retry-btn:hover {
+  background: #1e293b;
+}
+
+/* Thẻ hiển thị trạm đang chọn nổi góc trên phải */
+.map-selected-banner {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 500;
+  max-width: 300px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.9);
+  color: #f8fafc;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.22);
+  backdrop-filter: blur(8px);
+}
+
+.selected-banner-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #38bdf8;
+}
+
+.selected-banner-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.selected-banner-coords {
+  font-size: 11.5px;
+  color: #94a3b8;
+  margin-top: 3px;
+}
+
+/* Chú giải bản đồ nổi góc dưới trái */
+.map-legend {
+  position: absolute;
+  bottom: 16px;
+  left: 14px;
+  z-index: 500;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legend-title {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #334155;
+  letter-spacing: 0.05em;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-high {
+  background: #ef4444;
+}
+
+.dot-medium {
+  background: #f59e0b;
+}
+
+.dot-low {
+  background: #22c55e;
+}
+
+/* Giao diện Popup KPI chi tiết */
+.gis-popup {
+  min-width: 260px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.gis-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.gis-popup-code {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #0284c7;
+}
+
+.gis-popup-badge {
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.gis-popup-title {
+  margin: 0 0 4px;
+  font-size: 14.5px;
+  color: #0f172a;
+}
+
+.gis-popup-sub {
+  font-size: 12px;
+  color: #475569;
+  margin-bottom: 10px;
+}
+
+.gis-popup-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.gis-kpi-cell {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.gis-kpi-cell span {
+  font-size: 10.5px;
+  color: #64748b;
+}
+
+.gis-kpi-cell strong {
+  font-size: 12.5px;
+  color: #0f172a;
+  margin-top: 2px;
+}
+
+.gis-popup-rule {
+  font-size: 12px;
+  color: #1e293b;
+  padding-top: 6px;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.gis-popup-flags {
+  margin-top: 8px;
+}
+
+.flags-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #b91c1c;
+  margin-bottom: 4px;
+}
+
+.flags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.flag-tag {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 5px;
 }

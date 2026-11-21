@@ -1,188 +1,326 @@
 /* ==============================================================================
- * STYLESHEET: GIAO DIỆN THANH ĐIỀU KHIỂN SIDEBAR BÊN TRÁI (Sidebar.css)
- * Phụ trách: Minh Trường (Full-stack & UI Dashboard)
+ * STYLESHEET: THANH ĐIỀU KHIỂN NOC SIDEBAR (Sidebar.css)
+ * Phụ trách: Minh Trường (UI Dashboard) & Võ Ngọc Quý (Web GIS Engineer)
  * ============================================================================== */
 
-/* 1. Khung chứa Sidebar cố định bên trái màn hình */
 .sidebar-container {
-    width: 360px;
-    height: 100vh;
-    background-color: #0f172a; /* Tông màu tối chuẩn NOC Dashboard */
-    color: #f8fafc;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid #1e293b;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    box-sizing: border-box;
+  width: 370px;
+  height: 100vh;
+  background-color: #0b1220;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #1e293b;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
-/* 2. Phần tiêu đề trên cùng */
 .sidebar-header {
-    padding: 20px;
-    background-color: #1e293b;
-    border-bottom: 1px solid #334155;
+  padding: 16px 18px 14px;
+  background: linear-gradient(135deg, #0f172a, #172554);
+  border-bottom: 1px solid #1e293b;
+}
+
+.sidebar-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.sidebar-brand-badge {
+  width: 42px;
+  height: 36px;
+  border-radius: 9px;
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
 }
 
 .sidebar-title {
-    margin: 0;
-    font-size: 1.25rem;
-    color: #38bdf8; /* Xanh VNPT */
+  margin: 0;
+  font-size: 1.15rem;
+  color: #f8fafc;
+  font-weight: 700;
 }
 
 .sidebar-subtitle {
-    margin: 4px 0 0 0;
-    font-size: 0.85rem;
-    color: #94a3b8;
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: #94a3b8;
 }
 
-/* 3. Thanh nút bấm bộ lọc rủi ro */
+.sidebar-counter-row {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: #cbd5e1;
+}
+
+.mini-source {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.mini-source.live {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.mini-source.mock {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+.sidebar-search-wrap {
+  padding: 12px 14px 8px;
+}
+
+.sidebar-search-input {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background-color: #111c30;
+  color: #f8fafc;
+  font-size: 0.84rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.sidebar-search-input:focus {
+  border-color: #38bdf8;
+}
+
+.sidebar-province-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 0 14px 10px;
+}
+
+.prov-btn {
+  padding: 4px 9px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid #1e293b;
+  background: #111c30;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.prov-btn:hover {
+  color: #f8fafc;
+  border-color: #334155;
+}
+
+.prov-btn.active {
+  background: rgba(56, 189, 248, 0.16);
+  color: #38bdf8;
+  border-color: #38bdf8;
+}
+
 .sidebar-filter {
-    display: flex;
-    gap: 6px;
-    padding: 12px 16px;
-    background-color: #0f172a;
-    border-bottom: 1px solid #1e293b;
+  display: flex;
+  gap: 6px;
+  padding: 0 14px 12px;
+  border-bottom: 1px solid #1e293b;
 }
 
 .filter-btn {
-    flex: 1;
-    padding: 6px 8px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    border: 1px solid #334155;
-    border-radius: 6px;
-    background-color: #1e293b;
-    color: #cbd5e1;
-    cursor: pointer;
-    transition: all 0.2s ease;
+  flex: 1;
+  padding: 6px 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  border: 1px solid #1e293b;
+  border-radius: 7px;
+  background-color: #111c30;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: all 0.18s ease;
 }
 
 .filter-btn:hover {
-    background-color: #334155;
+  background-color: #1e293b;
 }
 
 .filter-btn.active {
-    background-color: #0284c7;
-    color: #ffffff;
-    border-color: #38bdf8;
+  background-color: #0284c7;
+  color: #ffffff;
+  border-color: #38bdf8;
 }
 
-/* 4. Khu vực cuộn danh sách trạm phát sóng */
 .station-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.station-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.station-list::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 999px;
 }
 
 .sidebar-status {
-    text-align: center;
-    color: #94a3b8;
-    font-size: 0.9rem;
-    margin-top: 24px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.86rem;
+  margin-top: 24px;
 }
 
-.sidebar-status.error {
-    color: #f87171;
-}
-
-/* 5. Thẻ thông tin từng trạm (Station Card) */
 .station-card {
-    background-color: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 10px;
-    padding: 14px;
-    cursor: pointer;
-    transition: transform 0.15s ease, border-color 0.15s ease;
+  background-color: #111c30;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 12px 13px;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .station-card:hover {
-    transform: translateY(-2px);
-    border-color: #38bdf8;
+  transform: translateY(-1px);
+  border-color: #38bdf8;
+  background-color: #16233b;
 }
 
 .station-card.selected {
-    border-color: #38bdf8;
-    background-color: #1e293b;
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+  border-color: #38bdf8;
+  background-color: #172845;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
 }
 
 .station-card-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 
 .station-code {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #38bdf8;
-    letter-spacing: 0.5px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: 0.3px;
 }
 
 .station-name {
-    margin: 0 0 12px 0;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #f1f5f9;
-    line-height: 1.4;
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  line-height: 1.35;
 }
 
-/* 6. BADGE MÀU THEO MỨC ĐỘ RỦI RO (LOW - MEDIUM - HIGH) */
+.station-meta-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.meta-pill {
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: #1e293b;
+  color: #cbd5e1;
+}
+
+.meta-pill.rule-A1_rule_vh {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
+}
+
+.meta-pill.rule-A1_rule_kt {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fcd34d;
+}
+
+.meta-pill.rule-NORMAL {
+  background: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+}
+
 .risk-badge {
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-/* Mức LOW: Màu Xanh lá (An toàn) */
 .risk-badge.risk-low {
-    background-color: rgba(34, 197, 94, 0.18);
-    color: #4ade80;
-    border: 1px solid rgba(74, 222, 128, 0.4);
+  background-color: rgba(34, 197, 94, 0.18);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.35);
 }
 
-/* Mức MEDIUM: Màu Vàng cam (Cảnh báo) */
 .risk-badge.risk-medium {
-    background-color: rgba(245, 158, 11, 0.18);
-    color: #fbbf24;
-    border: 1px solid rgba(251, 191, 36, 0.4);
+  background-color: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.35);
 }
 
-/* Mức HIGH: Màu Đỏ (Nguy cơ suy giảm cao) */
 .risk-badge.risk-high {
-    background-color: rgba(239, 68, 68, 0.2);
-    color: #f87171;
-    border: 1px solid rgba(248, 113, 113, 0.5);
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.45);
 }
 
-/* 7. Khung hiển thị 3 chỉ số KPI bên dưới thẻ trạm */
 .station-metrics {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    padding-top: 10px;
-    border-top: 1px dashed #334155;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding-top: 9px;
+  border-top: 1px dashed #24324a;
 }
 
 .metric-item {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .metric-label {
-    font-size: 0.7rem;
-    color: #94a3b8;
+  font-size: 0.68rem;
+  color: #94a3b8;
 }
 
 .metric-value {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #e2e8f0;
-    margin-top: 2px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin-top: 2px;
+}
+
+@media (max-width: 960px) {
+  .sidebar-container {
+    width: 100%;
+    height: 44vh;
+    border-right: none;
+    border-bottom: 1px solid #1e293b;
+  }
 }
