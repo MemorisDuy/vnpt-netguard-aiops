@@ -9,7 +9,7 @@ const express = require('express');
 const router = express.Router();
 
 // Import các hàm xử lý nghiệp vụ getHighRiskAreas và getNetworkSummary từ controller
-const { getHighRiskAreas, getNetworkSummary } = require('../controllers/statsController');
+const { getHighRiskAreas, getNetworkSummary, getCellErrorStats } = require('../controllers/statsController');
 
 /**
  * ------------------------------------------------------------------------------
@@ -34,3 +34,24 @@ router.get('/summary', getNetworkSummary);
 
 // Xuất đối tượng router để đăng ký vào ứng dụng Express tại server.js
 module.exports = router;
+
+/**
+  * ------------------------------------------------------------------------------
+  * ĐỊNH NGHĨA ROUTE 3: THỐNG KÊ CELL LỖI THEO NHÓM A1 (CELL ERROR STATS)
+  * ------------------------------------------------------------------------------
+  * Endpoint hoàn chỉnh: GET /api/stats/cell-errors
+  *
+  * Nghiệp vụ bổ sung Mốc Tuần 4:
+  * - Đếm số Cell lỗi Vận hành (A1_rule_vh).
+  * - Đếm số Cell lỗi Kỹ thuật (A1_rule_kt).
+  * - Thống kê tổng Cell, Cell bình thường và Cell chưa đủ dữ liệu.
+  * - Hỗ trợ lọc theo mã tỉnh (province_code) hoặc tên trạm (node_name).
+  *
+  * Dữ liệu lấy từ bảng network_cells do nhóm xây dựng.
+  * Kết quả có thể dùng cho Frontend Dashboard của Minh Trường.
+  * Không ảnh hưởng các route thống kê trạm hiện có.
+  */
+ router.get('/cell-errors', getCellErrorStats);
+
+ // Xuất đối tượng router để đăng ký vào ứng dụng Express tại server.js
+ module.exports = router;
