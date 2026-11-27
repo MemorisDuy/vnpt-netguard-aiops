@@ -18,6 +18,8 @@ import "leaflet/dist/leaflet.css";
 import "./MapContainer.css";
 
 import HeatmapLayer from "./HeatmapLayer";
+// Import lớp ghi chú chủ quyền trên bản đồ
+import SovereigntyLayer from "./SovereigntyLayer";
 import { RISK_COLOR_MAP, RISK_LABEL_VN_MAP } from "../../services/api";
 
 // Tâm mặc định khu vực miền Nam (bao quát TP.HCM, Bến Tre, Cần Thơ, An Giang)
@@ -152,6 +154,8 @@ function MapContainer({
         <MapViewportController selectedStation={selectedStation} mapFocus={mapFocus} />
 
         <HeatmapLayer stations={stations} visible={showHeatmap} />
+        {/* Lớp ghi chú chủ quyền trên bản đồ */}
+        <SovereigntyLayer />
 
         {/* Render từng điểm trạm / cell lên bản đồ */}
         {stations.map((station, index) => {

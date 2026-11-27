@@ -293,3 +293,26 @@
   padding: 2px 6px;
   border-radius: 5px;
 }
+/* ==========================================================
+   LỚP GHI CHÚ CHỦ QUYỀN TRÊN BẢN ĐỒ
+   Phụ trách: Võ Ngọc Quý (Web GIS Engineer)
+   ========================================================== */
+
+/* Định dạng nhãn địa danh */
+.leaflet-tooltip.sovereignty-label {
+    background-color: #c65b22;
+    color: #ffffff;
+    border: 2px solid #f5c49b;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+}
+
+/* Ẩn mũi tên mặc định của Tooltip */
+.leaflet-tooltip.sovereignty-label::before {
+    display: none;
+}
